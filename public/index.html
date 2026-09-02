@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendario de Presentaciones — MCM</title>
+<style>
+  :root{
+    --ink:#1F3050;
+    --ink-soft:#3E5271;
+    --paper:#F7F5F0;
+    --paper-raised:#FFFFFF;
+    --line:#D9D4C8;
+    --amber:#B5762A;
+    --amber-bg:#F4E6D3;
+    --sage:#3F6B4F;
+    --sage-bg:#E1EBE3;
+    --rust:#A6432F;
+    --rust-bg:#F3E0DA;
+    --sky:#2B5F8A;
+    --sky-bg:#D9E6EF;
+    --slate:#6B7688;
+    --serif: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --mono: 'SF Mono', 'Courier New', ui-monospace, monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--paper);}
+  .cal-root{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    padding:28px 22px 60px;
+    min-height:100%;
+    border-radius:4px;
+    max-width:1100px;
+    margin:0 auto;
+  }
+  .cal-header{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    border-bottom:2px solid var(--ink); padding-bottom:14px; margin-bottom:20px;
+    flex-wrap:wrap; gap:14px;
+  }
+  .cal-title{
+    font-family:var(--serif); font-size:24px; font-weight:700; letter-spacing:0.2px;
+    color:var(--ink);
+  }
+  .cal-sub{
+    font-family:var(--mono); font-size:11px; color:var(--slate); letter-spacing:0.5px;
+    text-transform:uppercase; margin-top:4px;
+  }
+  .cal-legend{ display:flex; gap:14px; font-size:11px; color:var(--slate); align-items:center; flex-wrap:wrap;}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:5px; box-sizing:border-box;}
+  .day-dots .dot{width:12px;height:12px;display:inline-flex;align-items:center;justify-content:center;margin-right:2px;}
+  .day-dots .dot svg{display:block;}
+  .ring-sample{border:2px solid var(--sage);}
+  .ring-sample.overdue{border-color:var(--rust);}
+  .auth-chip{
+    font-family:var(--mono); font-size:9px; text-transform:uppercase; letter-spacing:0.4px;
+    padding:2px 6px; border-radius:2px; color:#fff; display:inline-block;
+  }
+
+  .cal-toolbar{
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; gap:12px; flex-wrap:wrap;
+  }
+  .nav-group{display:flex; align-items:center; gap:10px;}
+  .nav-btn{
+    background:var(--paper-raised); border:1px solid var(--line); color:var(--ink);
+    width:32px; height:32px; border-radius:3px; cursor:pointer; font-size:14px; font-family:var(--sans);
+    display:flex; align-items:center; justify-content:center; transition:background .15s;
+  }
+  .nav-btn:hover{background:var(--amber-bg);}
+  .month-label{font-family:var(--serif); font-size:19px; min-width:190px; text-align:center; text-transform:capitalize;}
+  .today-btn{
+    font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px;
+    background:none; border:1px solid var(--slate); color:var(--slate); border-radius:3px; padding:6px 10px; cursor:pointer;
+  }
+  .today-btn:hover{border-color:var(--ink); color:var(--ink);}
+
+  .settings-inline{display:flex; align-items:center; gap:8px; font-size:12px; color:var(--slate);}
+  .settings-inline select{
+    font-family:var(--sans); font-size:12px; padding:5px 7px; border:1px solid var(--line); border-radius:3px; background:var(--paper-raised); color:var(--ink);
+  }
+
+  .cal-grid-wrap{
+    background:var(--paper-raised); border:1px solid var(--line); border-radius:5px; overflow:hidden; margin-bottom:26px;
+    box-shadow:0 1px 2px rgba(31,48,80,0.04);
+  }
+  .cal-grid{ display:grid; grid-template-columns:repeat(7,1fr);}
+  .cal-dow{
+    font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:0.6px; color:var(--slate);
+    text-align:center; padding:9px 0; border-bottom:1px solid var(--line); background:#F1EEE6;
+  }
+  .cal-day{
+    min-height:76px; border-right:1px solid var(--line); border-bottom:1px solid var(--line);
+    padding:6px 6px; position:relative; cursor:default; transition:background .15s;
+  }
+  .cal-day:nth-child(7n){border-right:none;}
+  .cal-day.empty{background:#F1EEE6;}
+  .cal-day.weekend{background:#F3F1EA;}
+  .cal-day.holiday{background:var(--rust-bg);}
+  .cal-day.today{background:var(--sky-bg);}
+  .cal-day.selected{background:#E9E2D0; outline:2px solid var(--ink); outline-offset:-2px;}
+  .cal-day:not(.empty):hover{background:#EFEAE0; cursor:pointer;}
+  .day-num{font-family:var(--mono); font-size:11.5px; color:var(--ink-soft);}
+  .cal-day.today .day-num{font-weight:700; color:var(--sky);}
+  .cal-day.holiday .day-num{color:var(--rust); font-weight:700;}
+  .holiday-label{font-family:var(--sans); font-size:8.5px; color:var(--rust); line-height:1.1; margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .day-dots{display:flex; gap:3px; flex-wrap:wrap; margin-top:5px;}
+
+  .panel-title{
+    font-family:var(--serif); font-size:16px; margin:0 0 12px; color:var(--ink);
+    display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; scroll-margin-top:14px;
+  }
+  .panel-title .count{font-family:var(--mono); font-size:11px; color:var(--slate); font-weight:400;}
+  .clear-filter{
+    font-family:var(--mono); font-size:10.5px; color:var(--ink-soft); cursor:pointer;
+    text-decoration:underline; margin-left:auto;
+  }
+
+  .item-list{display:flex; flex-direction:column; gap:8px; margin-bottom:28px;}
+  .item-row{
+    background:var(--paper-raised); border:1px solid var(--line); border-radius:4px;
+    padding:11px 14px; display:flex; align-items:flex-start; gap:12px; position:relative; overflow:hidden;
+  }
+  .item-row.done{background:var(--sage-bg); border-color:#C7D9CB;}
+  .item-row.overdue{border-color:#E0BCAF;}
+
+  .chk{
+    width:19px; height:19px; border:1.5px solid var(--slate); border-radius:3px; flex:0 0 19px; margin-top:2px;
+    cursor:pointer; background:var(--paper-raised); position:relative; transition:all .12s;
+  }
+  .chk:hover{border-color:var(--ink);}
+  .chk.checked{background:var(--sage); border-color:var(--sage);}
+  .chk.checked::after{
+    content:''; position:absolute; left:5px; top:1px; width:5px; height:10px;
+    border:solid white; border-width:0 2px 2px 0; transform:rotate(40deg);
+  }
+
+  .item-body{flex:1; min-width:0;}
+  .item-top{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:2px;}
+  .item-authority{
+    font-family:var(--mono); font-size:9.5px; letter-spacing:0.5px; text-transform:uppercase;
+    color:#FFFFFF; padding:2px 6px; border-radius:2px;
+  }
+  .item-freq{font-family:var(--mono); font-size:9.5px; color:var(--slate); text-transform:uppercase; letter-spacing:0.4px;}
+  .item-name{font-size:13.5px; color:var(--ink); line-height:1.4;}
+  .item-row.done .item-name{color:#4C6B54;}
+  .item-meta{font-family:var(--mono); font-size:10.5px; color:var(--slate); margin-top:4px;}
+  .item-date{font-family:var(--mono); font-size:11px; color:var(--amber); font-weight:600; white-space:nowrap; padding-top:2px;}
+  .item-row.done .item-date{color:var(--sage);}
+  .item-row.overdue .item-date{color:var(--rust);}
+
+  .stamp{
+    position:absolute; right:10px; top:50%; transform:translateY(-50%) rotate(-9deg);
+    font-family:var(--serif); font-weight:700; font-size:12px; letter-spacing:1px;
+    color:var(--sage); border:2px solid var(--sage); border-radius:4px; padding:2px 8px;
+    opacity:0.75; pointer-events:none; text-transform:uppercase;
+  }
+
+  .variable-note{
+    font-size:11.5px; color:var(--slate); font-style:italic; margin-top:2px;
+  }
+
+  .section-divider{
+    display:flex; align-items:center; gap:10px; margin:26px 0 12px; color:var(--slate);
+    font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:0.7px;
+  }
+  .section-divider::after{content:''; flex:1; height:1px; background:var(--line);}
+
+  .footnote{
+    font-size:11px; color:var(--slate); border-top:1px solid var(--line); padding-top:14px; margin-top:8px; line-height:1.6;
+  }
+  .footnote b{color:var(--ink-soft);}
+
+  .empty-state{
+    font-size:13px; color:var(--slate); font-style:italic; padding:20px; text-align:center;
+    background:var(--paper-raised); border:1px dashed var(--line); border-radius:4px;
+  }
+
+  .add-btn{
+    font-family:var(--sans); font-size:12.5px; font-weight:600; color:var(--paper-raised);
+    background:var(--ink); border:none; border-radius:3px; padding:8px 13px; cursor:pointer;
+    display:flex; align-items:center; gap:6px; transition:background .15s;
+  }
+  .add-btn:hover{background:var(--ink-soft);}
+  .add-btn .plus{font-size:15px; line-height:1;}
+  .add-btn.alert-btn{background:var(--amber);}
+  .add-btn.alert-btn:hover{background:#96601F;}
+
+  .hechos-banner{
+    background:var(--rust-bg); border:1px solid #E0BCAF; border-radius:5px; padding:12px 16px; margin-bottom:16px;
+  }
+  .hechos-banner-title{
+    font-family:var(--serif); font-size:14.5px; color:var(--rust); font-weight:700; margin-bottom:8px;
+    display:flex; align-items:center; gap:7px;
+  }
+  .hecho-row{
+    background:var(--paper-raised); border:1px solid #E0BCAF; border-radius:4px; padding:9px 12px;
+    display:flex; align-items:flex-start; gap:10px; margin-bottom:7px;
+  }
+  .hecho-row:last-child{margin-bottom:0;}
+  .hecho-body{flex:1; min-width:0;}
+  .hecho-desc{font-size:13px; color:var(--ink); line-height:1.4;}
+  .hecho-due{font-family:var(--mono); font-size:10.5px; color:var(--rust); margin-top:3px; font-weight:600;}
+  .hecho-due.ok{color:var(--amber);}
+
+  .hr-info{
+    border:1px solid var(--line); border-radius:5px; background:var(--paper-raised); margin-bottom:16px;
+    overflow:hidden;
+  }
+  .hr-info summary{
+    padding:10px 14px; cursor:pointer; font-family:var(--sans); font-size:12.5px; font-weight:600;
+    color:var(--ink-soft); list-style:none; display:flex; align-items:center; gap:7px; user-select:none;
+  }
+  .hr-info summary::-webkit-details-marker{display:none;}
+  .hr-info summary::before{content:'▸'; font-size:10px; color:var(--slate); transition:transform .15s;}
+  .hr-info[open] summary::before{transform:rotate(90deg);}
+  .hr-info summary:hover{background:#F7F5F0;}
+  .hr-info-body{padding:4px 16px 16px; border-top:1px solid var(--line);}
+  .hr-info-body p{font-size:12px; color:var(--ink-soft); line-height:1.6; margin:10px 0;}
+  .hr-cat{margin-top:14px;}
+  .hr-cat-title{
+    font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:0.5px;
+    color:var(--rust); font-weight:700; margin-bottom:5px;
+  }
+  .hr-cat ul{margin:0; padding-left:18px;}
+  .hr-cat li{font-size:12px; color:var(--ink); line-height:1.65; margin-bottom:3px;}
+  .hr-cat li .tag{font-size:10px; color:var(--slate); font-style:italic;}
+  .hr-source{font-size:11px; color:var(--slate); margin-top:14px; border-top:1px solid var(--line); padding-top:10px;}
+
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(31,48,80,0.45); z-index:50;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .modal-overlay.hidden{display:none;}
+  .modal{
+    background:var(--paper-raised); border-radius:6px; width:100%; max-width:420px;
+    padding:22px 24px 20px; box-shadow:0 10px 30px rgba(31,48,80,0.25);
+    max-height:88vh; overflow-y:auto;
+  }
+  .modal-title{font-family:var(--serif); font-size:17px; color:var(--ink); margin-bottom:16px; border-bottom:1px solid var(--line); padding-bottom:10px;}
+  .field-label{
+    font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:var(--slate);
+    display:block; margin:12px 0 5px;
+  }
+  .field-label:first-of-type{margin-top:0;}
+  .modal input[type=text], .modal input[type=number], .modal input[type=date], .modal select{
+    width:100%; font-family:var(--sans); font-size:13px; padding:8px 9px; border:1px solid var(--line);
+    border-radius:3px; background:var(--paper); color:var(--ink);
+  }
+  .inline-fields{display:flex; align-items:center; gap:8px;}
+  .inline-fields input[type=number]{width:64px; flex:0 0 64px;}
+  .inline-fields select{width:auto; flex:1;}
+  .field-suffix{font-size:12px; color:var(--slate); white-space:nowrap;}
+  .modal-actions{display:flex; justify-content:flex-end; gap:10px; margin-top:20px;}
+  .modal-btn{font-family:var(--sans); font-size:12.5px; padding:8px 14px; border-radius:3px; cursor:pointer; border:1px solid var(--line);}
+  .modal-btn.cancel{background:var(--paper-raised); color:var(--slate);}
+  .modal-btn.save{background:var(--sage); color:white; border-color:var(--sage); font-weight:600;}
+  .hidden{display:none !important;}
+
+  .item-del{
+    font-family:var(--mono); font-size:14px; color:var(--slate); cursor:pointer; padding:0 2px;
+    flex:0 0 auto; opacity:0.6; transition:opacity .15s;
+  }
+  .item-del:hover{opacity:1; color:var(--rust);}
+
+  @media (max-width:640px){
+    .cal-day{min-height:56px;}
+    .month-label{min-width:0;}
+  }
+</style>
+</head>
+<body>
+<div class="cal-root" id="calRoot">
+  <div class="cal-header">
+    <div>
+      <div class="cal-title">Calendario de Presentaciones — MCM</div>
+      <div class="cal-sub">CNV · UIF · AFIP · DPJ · SSN</div>
+    </div>
+    <div class="cal-legend" id="calLegend">
+      <span><span class="dot" style="width:12px;height:12px;display:inline-flex;"><svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="6" fill="#8B93A0"/><path d="M3.2 6.3l1.9 1.9L8.9 4.3" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>cumplido</span>
+      <span><span class="dot ring-sample overdue" style="background:#8B93A0"></span>vencido</span>
+      <span><span class="dot" style="width:12px;height:12px;display:inline-flex;"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 1 L11 10 L1 10 Z" fill="#B5762A"/><rect x="5.3" y="4" width="1.4" height="3" fill="#fff"/><rect x="5.3" y="7.4" width="1.4" height="1.3" fill="#fff"/></svg></span>hecho relevante</span>
+      <span style="width:1px;height:14px;background:var(--line);"></span>
+      <span class="auth-chip" style="background:#2C4F73">CNV</span>
+      <span class="auth-chip" style="background:#6B4C86">UIF</span>
+      <span class="auth-chip" style="background:#2E7D62">AFIP</span>
+      <span class="auth-chip" style="background:#8A6B2C">DPJ</span>
+      <span class="auth-chip" style="background:#B5622A">SSN</span>
+      <span style="width:1px;height:14px;background:var(--line);"></span>
+      <span><span class="dot" style="background:var(--rust-bg); border:1px solid var(--rust);"></span>feriado</span>
+      <span><span class="dot" style="background:var(--sky-bg); border:1px solid var(--sky);"></span>hoy</span>
+    </div>
+  </div>
+
+  <div id="hechosBanner"></div>
+
+  <div class="cal-toolbar">
+    <div class="nav-group">
+      <button class="nav-btn" id="prevBtn">‹</button>
+      <div class="month-label" id="monthLabel"></div>
+      <button class="nav-btn" id="nextBtn">›</button>
+      <button class="today-btn" id="todayBtn">Hoy</button>
+    </div>
+    <div class="settings-inline">
+      <span>Cierre de ejercicio:</span>
+      <select id="fyeSelect">
+        <option value="0">Enero</option><option value="1">Febrero</option><option value="2">Marzo</option>
+        <option value="3">Abril</option><option value="4">Mayo</option><option value="5">Junio</option>
+        <option value="6">Julio</option><option value="7">Agosto</option><option value="8">Septiembre</option>
+        <option value="9">Octubre</option><option value="10">Noviembre</option><option value="11" selected>Diciembre</option>
+      </select>
+      <button class="add-btn alert-btn" id="openHechoBtn">⚠ Hecho relevante</button>
+      <button class="add-btn" id="openAddBtn"><span class="plus">+</span> Nueva presentación</button>
+    </div>
+  </div>
+
+  <div class="cal-grid-wrap">
+    <div class="cal-grid" id="dowRow"></div>
+    <div class="cal-grid" id="dayGrid"></div>
+  </div>
+
+  <div class="panel-title" id="panelTitle">Presentaciones del mes <span class="count" id="monthCount"></span></div>
+  <div class="item-list" id="itemList"></div>
+
+  <div id="variableSection"></div>
+
+  <div class="footnote">
+    <b>Cómo se calculan las fechas:</b> "días hábiles" descuenta sábados, domingos y los feriados nacionales
+    argentinos (Ley 27.399): los inamovibles (1/1, Carnaval, 24/3, Viernes Santo, 2/4, 1/5, 25/5, 20/6, 9/7, 8/12,
+    25/12 — Carnaval y Viernes Santo se calculan según la fecha de Pascua de cada año) y los trasladables
+    (Güemes 17/6, San Martín 17/8, Diversidad Cultural 12/10, Soberanía Nacional 20/11), aplicando la regla de
+    traslado a lunes que fija la ley. Los días feriados aparecen marcados en rojo en la grilla (pasá el mouse
+    para ver el nombre). <b>No</b> incluye los "días puente" turísticos, que el Poder Ejecutivo decreta cada año
+    de forma discrecional (hasta 3 por año) — conviene verificarlos cerca de la fecha. Los ítems anuales que
+    dependen del cierre de ejercicio usan el mes configurado arriba (por defecto diciembre) — cambialo si el
+    ejercicio de MCM cierra en otro mes. Los vencimientos "según cronograma AFIP" varían por terminación de CUIT
+    y se muestran sin día fijo. <b>Novedades cargadas:</b> RG 1130/2026 y RG 1144/2026 (indicadores de liquidez/
+    apalancamiento y moneda extranjera) y RG 1122/2026 (pasivos financieros del Agente — 3 días hábiles de
+    finalizado el mes, resaltada igual que RG 1130 en color). <b>Hechos relevantes:</b> usá el botón "⚠ Hecho
+    relevante" para cargar cualquier hecho el mismo día que ocurre. Desde el 21/8/2026 (RG 1162/2026) la CNV
+    exige informarlos <b>de inmediato</b> vía AIF (ya no hay ventana de días) — por eso queda destacado arriba
+    de todo hasta que alguien lo marque como presentado. Los checks se guardan compartidos: cualquiera que
+    entre a este link ve las mismas marcas.
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="addModalOverlay">
+  <div class="modal">
+    <div class="modal-title">Nueva presentación</div>
+
+    <label class="field-label">Organismo</label>
+    <input type="text" id="addAuth" placeholder="CNV, UIF, AFIP, DPJ, SSN...">
+
+    <label class="field-label">Nombre / obligación</label>
+    <input type="text" id="addName" placeholder="Ej: Informe especial requerido por...">
+
+    <label class="field-label">Frecuencia</label>
+    <select id="addFreq">
+      <option value="mensual">Mensual</option>
+      <option value="trimestral">Trimestral</option>
+      <option value="semestral">Semestral</option>
+      <option value="anual">Anual (fecha fija)</option>
+      <option value="puntual">Puntual (una sola vez)</option>
+    </select>
+
+    <div id="addRecurringFields">
+      <label class="field-label">Vencimiento</label>
+      <select id="addRecurringMode" style="margin-bottom:8px;">
+        <option value="dom">Día fijo del mes (ej: vence el 19)</option>
+        <option value="offset">Días desde finalizado el mes/trimestre</option>
+      </select>
+
+      <div id="addDomFields">
+        <div class="inline-fields">
+          <span class="field-suffix">vence el día</span>
+          <input type="number" id="addDom" min="1" max="31" value="19" style="width:64px;">
+          <span class="field-suffix" id="addDomSuffix">de cada mes</span>
+        </div>
+      </div>
+
+      <div id="addOffsetFields" class="hidden">
+        <div class="inline-fields">
+          <span class="field-suffix">a los</span>
+          <input type="number" id="addDays" min="0" value="10">
+          <select id="addDaysType">
+            <option value="cal">días corridos</option>
+            <option value="biz">días hábiles</option>
+          </select>
+        </div>
+        <div class="field-suffix" id="addRecurringSuffix" style="margin-top:5px;">de finalizado el mes</div>
+      </div>
+    </div>
+
+    <div id="addAnualFields" class="hidden">
+      <label class="field-label">Fecha (se repite todos los años)</label>
+      <input type="date" id="addAnualDate">
+    </div>
+
+    <div id="addPuntualFields" class="hidden">
+      <label class="field-label">Fecha</label>
+      <input type="date" id="addPuntualDate">
+    </div>
+
+    <div class="modal-actions">
+      <button class="modal-btn cancel" id="cancelAddBtn">Cancelar</button>
+      <button class="modal-btn save" id="saveAddBtn">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="hechoModalOverlay">
+  <div class="modal">
+    <div class="modal-title" style="color:var(--rust);">⚠ Registrar hecho relevante</div>
+
+    <details class="hr-info">
+      <summary>ⓘ ¿Qué cuenta como hecho relevante? — ver lista</summary>
+      <div class="hr-info-body">
+        <p>
+          <b>Concepto general (art. 2, Título XII):</b> hay que informar a la CNV, de inmediato y a través de la AIF,
+          todo hecho o situación que por su importancia pueda afectar en forma sustancial la colocación de valores
+          negociables, el curso de su negociación, <b>o el desenvolvimiento de la actividad propia de MCM como ALyC</b>.
+          Si el hecho fue aprobado por un órgano colegiado (directorio), hay que adjuntar la parte pertinente del
+          acta junto con la comunicación.
+        </p>
+        <p>
+          La lista de abajo (art. 3) es <b>ejemplificativa, no taxativa</b> — la norma aclara expresamente que no
+          exime de informar "todo otro hecho o situación no enunciado aquí". Marcamos con <span class="tag">(Emisora)</span>
+          los supuestos que en la práctica solo aplican a sociedades con oferta pública de acciones — los demás
+          aplican en general a cualquier sujeto alcanzado, MCM incluido.
+        </p>
+
+        <div class="hr-cat">
+          <div class="hr-cat-title">Organización y gobierno societario</div>
+          <ul>
+            <li>Cambios en el objeto social, alteraciones importantes de actividad o inicio de nuevas.</li>
+            <li>Renuncia o remoción de administradores y miembros del órgano de fiscalización, con sus causas y reemplazo.</li>
+            <li>Manifestación de cualquier causa de disolución.</li>
+            <li>Cambios en las tenencias que configuren el grupo de control.</li>
+            <li>Acuerdos de sindicación de acciones. <span class="tag">(Emisora)</span></li>
+            <li>Autorización, suspensión, retiro o cancelación de la negociación de la Emisora. <span class="tag">(Emisora)</span></li>
+          </ul>
+        </div>
+
+        <div class="hr-cat">
+          <div class="hr-cat-title">Operaciones y decisiones de magnitud</div>
+          <ul>
+            <li>Decisión sobre inversiones extraordinarias u operaciones financieras/comerciales de magnitud.</li>
+            <li>Enajenación de bienes del activo fijo por más del 15% de ese rubro (según último EECC/EEFF).</li>
+            <li>Gravamen de bienes con hipotecas o prendas por más del 15% del patrimonio neto.</li>
+            <li>Avales y fianzas otorgados por más del 15% del patrimonio neto (o 1% si no vinculados a la actividad).</li>
+            <li>Adquisición o venta de acciones u obligaciones convertibles de otra sociedad, por más del 10% del patrimonio neto.</li>
+            <li>Contratos de licencia, franquicia, agrupamientos o UTs de importancia.</li>
+            <li>Contratos significativos con directores, gerentes, fiscalizadores o partes relacionadas.</li>
+            <li>Aportes irrevocables a cuenta de futuras suscripciones de acciones. <span class="tag">(Emisora)</span></li>
+          </ul>
+        </div>
+
+        <div class="hr-cat">
+          <div class="hr-cat-title">Dificultades financieras</div>
+          <ul>
+            <li>Pérdidas superiores al 15% del patrimonio neto.</li>
+            <li>Inicio de tratativas de APE, concurso preventivo, quiebra (propia o pedida por terceros), reestructuración o refinanciación de deuda.</li>
+            <li>Atraso en el cumplimiento de obligaciones asumidas en valores negociables emitidos. <span class="tag">(Emisora)</span></li>
+            <li>Hechos que afecten adversamente y en forma significativa la capacidad de pago de intereses o amortizaciones de valores negociables. <span class="tag">(Emisora)</span></li>
+          </ul>
+        </div>
+
+        <div class="hr-cat">
+          <div class="hr-cat-title">Hechos que traban la actividad</div>
+          <ul>
+            <li>Cualquier hecho o acontecimiento fortuito que obstaculice seriamente el desenvolvimiento de las actividades, incluidas afectaciones importantes al ambiente.</li>
+            <li>Litigios, causas judiciales o reclamos arbitrales de importancia económica significativa o trascendencia para la actividad.</li>
+            <li>Sanciones de importancia económica o trascendencia impuestas por autoridades de control, aun no firmes.</li>
+            <li>Hechos que afecten en forma sustancial la situación económica, financiera o patrimonial de controladas o controlantes.</li>
+          </ul>
+        </div>
+
+        <div class="hr-cat">
+          <div class="hr-cat-title">Personal</div>
+          <ul>
+            <li>Despidos (con o sin causa) que representen el 10% o más del personal total, dentro de una ventana de 6 meses.</li>
+            <li>Decisiones que establezcan o modifiquen planes de recompensas/remuneración del directorio, comités, gerentes o empleados.</li>
+          </ul>
+        </div>
+
+        <div class="hr-cat">
+          <div class="hr-cat-title">Acciones propias, calificadoras y otros</div>
+          <ul>
+            <li>Decisión de adquirir o enajenar acciones propias, y el detalle de cada operación ejecutada. <span class="tag">(Emisora)</span></li>
+            <li>Tenencia indirecta de acciones propias por absorción de otra sociedad. <span class="tag">(Emisora)</span></li>
+            <li>Contratar, obtener calificaciones dispares, o rescindir el contrato con una calificadora de riesgo (ACR/ACR-UP). <span class="tag">(Emisora)</span></li>
+            <li>Propuestas de distribución de dividendos de los EECC/EEFF aprobados (o los motivos de no proponerla). <span class="tag">(Emisora)</span></li>
+            <li>Contratos que limiten la distribución de utilidades o las facultades de los órganos sociales. <span class="tag">(Emisora)</span></li>
+            <li>Aspectos de CEDEAR/CEVA: hechos sobre el subyacente, eventos corporativos, suspensiones de negociación. <span class="tag">(Emisora)</span></li>
+            <li>Recompra de obligaciones negociables por más del 5% de la clase o serie emitida. <span class="tag">(Emisora)</span></li>
+          </ul>
+        </div>
+
+        <div class="hr-source">
+          Fuente: Título XII, Cap. I, Sección II de las Normas CNV, texto sustituido por la
+          <a href="https://www.boletinoficial.gob.ar/detalleAviso/primera/346143/20260820" target="_blank" rel="noopener" style="color:var(--ink-soft);">RG N° 1162/2026</a>,
+          vigente desde el 21/8/2026. Ante la duda: la norma dice mejor informarlo.
+        </div>
+      </div>
+    </details>
+
+    <label class="field-label">¿Qué pasó?</label>
+    <input type="text" id="hechoDesc" placeholder="Ej: cambio de directorio, hecho relevante sobre...">
+
+    <label class="field-label">Fecha del hecho / de aprobación</label>
+    <input type="date" id="hechoDate">
+
+    <div style="font-size:11.5px; color:var(--slate); margin-top:10px; line-height:1.5;">
+      Desde el 21/8/2026 (RG 1162/2026), la CNV exige informarlo <b>de inmediato</b> vía AIF — ya no hay
+      ventana de días. Al guardar queda destacado arriba de todo hasta que se marque como presentado.
+    </div>
+
+    <div class="modal-actions">
+      <button class="modal-btn cancel" id="cancelHechoBtn">Cancelar</button>
+      <button class="modal-btn save" id="saveHechoBtn" style="background:var(--rust); border-color:var(--rust);">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── Storage shim ───────────────────────────────────────────────────────────
+// Backend propio (Express + Postgres en Railway). Sin login: todo lo que
+// guarda es compartido entre quien entra al link, igual que antes.
+// Misma forma que usaba el código original: get(key) -> {value}, set(key, value).
+window.storage = {
+  async get(key) {
+    try {
+      const r = await fetch('/api/data/' + encodeURIComponent(key));
+      if (!r.ok) return { value: null };
+      return await r.json();
+    } catch (e) {
+      console.error('[storage] error leyendo', key, e);
+      return { value: null };
+    }
+  },
+  async set(key, value) {
+    try {
+      await fetch('/api/data/' + encodeURIComponent(key), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ value })
+      });
+    } catch (e) {
+      console.error('[storage] error guardando', key, e);
+    }
+  }
+};
+</script>
+
+<script>
+(function(){
+
+const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const DOW = ['LUN','MAR','MIÉ','JUE','VIE','SÁB','DOM'];
+
+function isWeekend(d){ const wd=d.getDay(); return wd===0||wd===6; }
+
+// ---------- Argentina national holidays (Ley 27.399 + Decreto 614/2025) ----------
+function easterSunday(year){
+  const a=year%19, b=Math.floor(year/100), c=year%100, d=Math.floor(b/4), e=b%4,
+        f=Math.floor((b+8)/25), g=Math.floor((b-f+1)/3),
+        h=(19*a+b-d-g+15)%30, i=Math.floor(c/4), k=c%4,
+        l=(32+2*e+2*i-h-k)%7, m=Math.floor((a+11*h+22*l)/451),
+        month=Math.floor((h+l-7*m+114)/31), day=((h+l-7*m+114)%31)+1;
+  return new Date(year, month-1, day);
+}
+function moveTrasladable(d){
+  // Ley 27.399 art.6: martes/miércoles -> lunes anterior; jueves/viernes -> lunes siguiente.
+  // Decreto 614/2025: sábado/domingo -> viernes anterior o lunes siguiente (se aplica lunes siguiente por defecto).
+  const dow=d.getDay(); const r=new Date(d);
+  if(dow===2) r.setDate(r.getDate()-1);
+  else if(dow===3) r.setDate(r.getDate()-2);
+  else if(dow===4) r.setDate(r.getDate()+4);
+  else if(dow===5) r.setDate(r.getDate()+3);
+  else if(dow===6) r.setDate(r.getDate()+2);
+  else if(dow===0) r.setDate(r.getDate()+1);
+  return r;
+}
+const holidayCache = {};
+function holidaysForYear(year){
+  if(holidayCache[year]) return holidayCache[year];
+  const list=[];
+  const add=(d,name)=>list.push({date:new Date(d.getFullYear(),d.getMonth(),d.getDate()), name});
+  add(new Date(year,0,1), 'Año Nuevo');
+  const easter=easterSunday(year);
+  add(addCalDaysRaw(easter,-48), 'Lunes de Carnaval');
+  add(addCalDaysRaw(easter,-47), 'Martes de Carnaval');
+  add(new Date(year,2,24), 'Día de la Memoria');
+  add(addCalDaysRaw(easter,-2), 'Viernes Santo');
+  add(new Date(year,3,2), 'Malvinas');
+  add(new Date(year,4,1), 'Día del Trabajo');
+  add(new Date(year,4,25), 'Revolución de Mayo');
+  add(new Date(year,5,20), 'Gral. Belgrano');
+  add(moveTrasladable(new Date(year,5,17)), 'Gral. Güemes');
+  add(new Date(year,6,9), 'Día de la Independencia');
+  add(moveTrasladable(new Date(year,7,17)), 'Gral. San Martín');
+  add(moveTrasladable(new Date(year,9,12)), 'Día de la Diversidad Cultural');
+  add(moveTrasladable(new Date(year,10,20)), 'Día de la Soberanía Nacional');
+  add(new Date(year,11,8), 'Inmaculada Concepción');
+  add(new Date(year,11,25), 'Navidad');
+  const map={};
+  list.forEach(h=>{ map[ymdRaw(h.date)] = h.name; });
+  holidayCache[year]=map;
+  return map;
+}
+function addCalDaysRaw(date,n){ const d=new Date(date); d.setDate(d.getDate()+n); return d; }
+function ymdRaw(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function holidayName(d){
+  const map = holidaysForYear(d.getFullYear());
+  return map[ymdRaw(d)] || null;
+}
+function isHoliday(d){ return !!holidayName(d); }
+function isNonBusinessDay(d){ return isWeekend(d) || isHoliday(d); }
+
+// authority colors
+const AUTH_COLORS = {
+  'CNV':'#2C4F73', 'UIF':'#6B4C86', 'AFIP':'#2E7D62', 'DPJ':'#8A6B2C', 'SSN':'#B5622A'
+};
+function authColor(auth){
+  const key=(auth||'').toUpperCase().trim();
+  return AUTH_COLORS[key] || '#5B6472';
+}
+
+function addCalDays(date,n){ const d=new Date(date); d.setDate(d.getDate()+n); return d; }
+function addBizDays(date,n){ let d=new Date(date); let c=0; while(c<n){ d.setDate(d.getDate()+1); if(!isNonBusinessDay(d)) c++; } return d; }
+function lastDayOfMonth(y,mIdx){ return new Date(y, mIdx+1, 0); }
+function domDate(y, mIdx, day){ const last = lastDayOfMonth(y,mIdx).getDate(); return new Date(y, mIdx, Math.min(day,last)); }
+function lastBizDayOfMonth(y,mIdx){ let d=lastDayOfMonth(y,mIdx); while(isNonBusinessDay(d)) d.setDate(d.getDate()-1); return d; }
+function fmtDate(d){ return d.getDate()+' '+MESES[d.getMonth()].slice(0,3)+' '+d.getFullYear(); }
+function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function sameDay(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+
+// ---------- static obligation catalog ----------
+// freq: 'mensual' | 'trimestral' | 'semestral' | 'anual' | 'semanal' | 'quincenal-variable' | 'mensual-variable' | 'variable-otro'
+const ARCA_URL = 'https://www.argentina.gob.ar/arca/vencimientos';
+const ITEMS = [
+  // MENSUAL - fechas calculables
+  {id:'m-reclamos', auth:'CNV', name:'Informe de reclamos y/o denuncias de clientes', freq:'mensual', rule:{type:'cal', days:2}, meta:'2 días corridos de finalizado el mes'},
+  {id:'m-acdi', auth:'CNV', name:'ACDI — Cuotapartistas que suscribieron FCI', freq:'mensual', rule:{type:'cal', days:3}, meta:'3 días corridos de finalizado el mes'},
+  {id:'m-ssn', auth:'SSN', name:'Tenencias en FCI por ACDI (Resolución 1047 SSN)', freq:'mensual', rule:{type:'biz', days:5}, meta:'5 días hábiles de finalizado el mes'},
+  {id:'m-rg1130-liq', auth:'CNV', name:'RG 1130/2026 — Indicadores de liquidez y apalancamiento', freq:'mensual', rule:{type:'biz', days:8}, meta:'8 días hábiles de finalizado el mes', nuevo:'RG 1130/2026'},
+  {id:'m-rg1130-me', auth:'CNV', name:'RG 1130/2026 — Tenencias diarias de moneda extranjera (cartera propia)', freq:'mensual', rule:{type:'biz', days:10}, meta:'10 días hábiles de finalizado el mes', nuevo:'RG 1130/2026'},
+  {id:'m-rg1122-pasivos', auth:'CNV', name:'RG 1122/2026 — Pasivos financieros del Agente', freq:'mensual', rule:{type:'biz', days:3}, meta:'3 días hábiles de finalizado el mes — Portal AIF, formulario AGE_030', nuevo:'RG 1122/2026'},
+  {id:'m-rg1122-prestamos', auth:'CNV', name:'RG 1122/2026 — Acuerdos de préstamo o alquiler de valores negociables', freq:'mensual', rule:{type:'biz', days:3}, meta:'3 días hábiles de finalizado el mes — Portal AIF, formulario AGE_030', nuevo:'RG 1122/2026'},
+  {id:'m-cd-ordenes', auth:'CNV', name:'Copiado a CD — Registro de Órdenes de Mercado', freq:'mensual', rule:{type:'biz', days:10}, meta:'10 días hábiles de finalizado el mes'},
+  {id:'m-cd-caja', auth:'CNV', name:'Copiado a CD — Libro Caja', freq:'mensual', rule:{type:'biz', days:10}, meta:'10 días hábiles de finalizado el mes'},
+  {id:'m-cd-diario', auth:'CNV', name:'Copiado a CD — Libro Diario', freq:'mensual', rule:{type:'biz', days:10}, meta:'10 días hábiles de finalizado el mes'},
+  {id:'m-cd-clientes', auth:'CNV', name:'Copiado a CD — Libro de Operaciones de Clientes', freq:'mensual', rule:{type:'biz', days:10}, meta:'10 días hábiles de finalizado el mes'},
+  {id:'m-cd-exterior', auth:'CNV', name:'Copiado de libro del exterior', freq:'mensual', rule:{type:'biz', days:10}, meta:'10 días hábiles de finalizado el mes'},
+  {id:'m-rsm', auth:'UIF', name:'Detalle de cuentas comitentes activas e inactivas (RSM)', freq:'mensual', rule:{type:'lastbiz'}, meta:'entre el 15 y el último día hábil del mes'},
+  {id:'m-rti', auth:'UIF', name:'Transferencias internacionales de valores negociables (RTI)', freq:'mensual', rule:{type:'lastbiz'}, meta:'entre el 15 y el último día hábil del mes'},
+  {id:'m-sire', auth:'AFIP', name:'RG 3364/12 — Terceros intervinientes y beneficiarios del exterior (SIRE)', freq:'mensual', rule:{type:'lastbiz-nextmonth'}, meta:'último día hábil del mes siguiente'},
+  {id:'m-siter', auth:'AFIP', name:'SITER — Transacciones Económicas Relevantes', freq:'mensual', rule:{type:'lastbiz-nextmonth'}, meta:'último día hábil del mes siguiente'},
+
+  // TRIMESTRAL
+  {id:'t-valorizacion', auth:'CNV', name:'Valorización de carteras administradas', freq:'trimestral', rule:{type:'cal', days:10}, meta:'10 días corridos de finalizado el trimestre'},
+  {id:'t-clientes-pais', auth:'CNV', name:'Cantidad de clientes PF/PJ por país de residencia', freq:'trimestral', rule:{type:'cal', days:10}, meta:'10 días corridos de finalizado el trimestre'},
+
+  // SEMESTRAL
+  {id:'s-eecc', auth:'CNV', name:'EECC Semestrales', freq:'semestral', rule:{type:'cal', days:42}, meta:'42 días corridos de finalizado el semestre'},
+  {id:'s-plaft-aif', auth:'UIF', name:'RG 1139/2026 (CNV) — Segmentación de clientes, Monitoreo de la operatoria, PEP y Acuerdos de reciprocidad (AIF)', freq:'semestral-cal', rule:{months:[0,6]}, meta:'se actualiza cada 6 meses — ciclo fijo enero/julio, vigente desde el 01/07/2026 (primera carga: 31/07/2026)', nuevo:'RG 1139/2026'},
+
+  // ANUAL - fecha fija o calculable
+  {id:'a-tasa-cnv', auth:'CNV', name:'Tasa Anual de Fiscalización CNV', freq:'anual', rule:{type:'fixed', month:0, day:31}, meta:'enero de cada año (día exacto: verificar)'},
+  {id:'a-rsa', auth:'UIF', name:'Reporte Sistemático Anual (RSA)', freq:'anual', rule:{type:'fixed', month:2, day:15}, meta:'entre el 2 de enero y el 15 de marzo'},
+  {id:'a-autoeval', auth:'UIF', name:'Informe Técnico — Autoevaluación de Riesgos PLAyFT', freq:'anual', rule:{type:'fixed', month:3, day:30}, meta:'hasta el 30 de abril'},
+  {id:'a-autoeval-cnv', auth:'CNV', name:'Informe Técnico de Autoevaluación de Riesgos (envío directo a CNV)', freq:'anual', rule:{type:'fixed', month:3, day:30}, meta:'hasta el 30 de abril — aviso de Solana (asesoría legal)', nuevo:'aviso legal 21/8/2026'},
+  {id:'a-tolerancia-uif', auth:'UIF', name:'Declaración de Tolerancia al Riesgo', freq:'anual', rule:{type:'fixed', month:3, day:30}, meta:'hasta el 30 de abril — aviso de Solana (asesoría legal)', nuevo:'aviso legal 21/8/2026'},
+  {id:'a-tolerancia-cnv', auth:'CNV', name:'Declaración de Tolerancia al Riesgo', freq:'anual', rule:{type:'fixed', month:3, day:30}, meta:'hasta el 30 de abril — aviso de Solana (asesoría legal)', nuevo:'aviso legal 21/8/2026'},
+  {id:'a-oficial-cump', auth:'CNV', name:'Informe del Oficial de Cumplimiento sobre Autoevaluación PLAyFT', freq:'anual', rule:{type:'fixed-plus', month:3, day:30, days:2}, meta:'2 días corridos de presentada la Autoevaluación (UIF)'},
+  {id:'a-eecc-afip', auth:'AFIP', name:'EECC Anuales (AFIP) — Memoria, Estados Contables e Informe del Auditor (PUB)', freq:'anual', rule:{type:'fye-lastday-offset-months', months:6}, meta:'RG 4626/2019: último día del 6° mes posterior al cierre de ejercicio (antes se pensaba fijo 30/06, solo coincide si el cierre es en diciembre)'},
+  {id:'a-f780', auth:'AFIP', name:'F.713 — DDJJ complementaria de Ganancias (ex "Informe para Fines Fiscales"/F780)', freq:'anual', rule:{type:'fye-offset-months', months:5, day:14}, meta:'el F780 quedó obsoleto en 2019 (RG 4626): hoy es el F.713, con el mismo vencimiento que la DDJJ de Ganancias — revisar si conviene unificar este ítem con "DDJJ Ganancias (personas jurídicas)"'},
+  {id:'a-fatca', auth:'AFIP', name:'FATCA y OCDE Anual', freq:'anual', rule:{type:'fixed', month:5, day:30}, meta:'hasta el 30/06 — fecha de calendario fija, no depende del cierre de ejercicio'},
+  {id:'a-ddjj-ganancias-pj', auth:'AFIP', name:'DDJJ Ganancias (personas jurídicas)', freq:'anual', rule:{type:'fye-offset-months', months:5, day:14}, meta:'5° mes posterior al cierre de ejercicio — el día exacto (entre el 13 y el 16) depende de la terminación del CUIT, confirmar en ARCA', link:ARCA_URL},
+  {id:'a-cm05', auth:'AFIP', name:'DDJJ Anual Convenio Multilateral (CM05)', freq:'anual', rule:{type:'fixed', month:5, day:28}, meta:'suele vencer a fin de junio (últimos años: 28-30/06) — confirmar cronograma de la Comisión Arbitral', link:ARCA_URL},
+  {id:'a-revisor', auth:'UIF', name:'Informe Técnico del Revisor Externo Independiente', freq:'anual', rule:{type:'fixed-plus', month:3, day:30, days:120}, meta:'120 días corridos de presentada la Autoevaluación'},
+  {id:'a-eecc-cnv', auth:'CNV', name:'EECC Anuales (CNV)', freq:'anual', rule:{type:'fye', days:70}, meta:'70 días corridos del cierre de ejercicio'},
+  {id:'a-informe-cump', auth:'CNV', name:'Informe anual del Responsable de Cumplimiento Regulatorio', freq:'anual', rule:{type:'fye', days:70}, meta:'70 días corridos del cierre de ejercicio'},
+  {id:'a-auditoria', auth:'CNV', name:'Informe de Auditoría Anual de Sistemas', freq:'anual', rule:{type:'fye', days:10}, meta:'10 días corridos del cierre de ejercicio'},
+
+  // SEMANAL
+  {id:'w-contrapartida', auth:'CNV', name:'Informe de contrapartida líquida semanal', freq:'semanal', rule:{type:'weekly', days:3}, meta:'3 días hábiles de finalizada la semana'},
+];
+
+// items sin fecha fija (calendario AFIP / eventos variables) — se listan siempre, sin pin en la grilla
+const VARIABLE_ITEMS = [
+  {id:'v-iva', auth:'AFIP', name:'DDJJ IVA', meta:'CUIT terminado en 3 → grupo "2-3" (día base 19, se corre por fines de semana/feriados)', freq:'Mensual', link:ARCA_URL},
+  {id:'v-iibb', auth:'AFIP', name:'DDJJ Ingresos Brutos', meta:'según cronograma provincial (ARBA/AGIP/otras) — no sigue la tabla nacional', freq:'Mensual'},
+  {id:'v-sicore', auth:'AFIP', name:'DDJJ SICORE', meta:'CUIT terminado en 3 → mismo grupo que IVA ("2-3")', freq:'Mensual', link:ARCA_URL},
+  {id:'v-anticipos-gcias', auth:'AFIP', name:'Anticipos de Impuesto a las Ganancias', meta:'personas jurídicas: grupo "0-1-2-3" (vence entre los primeros del mes)', freq:'Mensual', link:ARCA_URL},
+  {id:'v-cargas-sociales', auth:'AFIP', name:'Cargas Sociales (SIJP / F.931)', meta:'CUIT terminado en 3 → grupo "0-1-2-3" (vence primero dentro del mes)', freq:'Mensual', link:ARCA_URL},
+  {id:'v-ret-suss-sire', auth:'AFIP', name:'Retenciones SUSS / Beneficiarios del Exterior (SIRE)', meta:'CUIT terminado en 3 → grupo "0-1-2-3"', freq:'Mensual', link:ARCA_URL},
+  {id:'v-conv-multilateral', auth:'AFIP', name:'Convenio Multilateral', meta:'según cronograma provincial (Comisión Arbitral) — no sigue la tabla nacional', freq:'Mensual'},
+  {id:'v-citi', auth:'AFIP', name:'Compras y Ventas RG3685 (CITI)', meta:'CUIT terminado en 3 → grupo "2-3" (similar a IVA)', freq:'Mensual', link:ARCA_URL},
+  {id:'v-ret-iibb-iva-gcias', auth:'AFIP', name:'Retenciones de IIBB / IVA / Ganancias', meta:'CUIT terminado en 3 → grupo "2-3" (1ª quincena)', freq:'Quincenal', link:ARCA_URL},
+  {id:'v-sicore-anticipos', auth:'AFIP', name:'SICORE Anticipos', meta:'CUIT terminado en 3 → grupo "2-3" (2ª quincena)', freq:'Quincenal', link:ARCA_URL},
+  {id:'v-eecc-asamblea', auth:'AFIP', name:'Estados Contables con Acta de Asamblea que lo aprueba', meta:'90 días desde la aprobación en asamblea (fecha variable, no repetitiva mes a mes)', freq:'Anual'},
+  {id:'v-tasa-dpj', auth:'DPJ', name:'Tasa Anual de Fiscalización', meta:'verificar aplicabilidad', freq:'Anual'},
+  {id:'v-f460j', auth:'AFIP', name:'F460/J — Actualización de datos', meta:'al designarse nuevos cargos (cada 3 años)', freq:'Trienal'},
+  {id:'v-plaft-benef-final', auth:'CNV', name:'RG 1139/2026 — Beneficiario Final (actualización ante cambios)', meta:'dentro de los 30 días corridos de producida la modificación', freq:'Evento', nuevo:'RG 1139/2026'},
+  {id:'v-plaft-of-cumpl', auth:'CNV', name:'RG 1139/2026 — Alta/cambio de Oficial de Cumplimiento (AIF)', meta:'dentro de los 5 días de inscripto ante la UIF', freq:'Evento', nuevo:'RG 1139/2026'},
+  {id:'v-plaft-manual', auth:'CNV', name:'RG 1139/2026 — Manual PLA/FT/FP e Informe de Control Interno', meta:'dentro de los 10 días corridos de cada cambio', freq:'Evento', nuevo:'RG 1139/2026'},
+  {id:'v-ros-la', auth:'UIF', name:'Reporte de Operación Sospechosa (ROS) de Lavado de Activos', meta:'15 días desde confirmada la operación, sin superar los 150 días desde el hecho', freq:'Espontáneo'},
+  {id:'v-ros-ft', auth:'UIF', name:'Reporte de Operación Sospechosa (ROS) de Financiamiento del Terrorismo', meta:'48 horas desde la operación realizada o tentada', freq:'Espontáneo'},
+  {id:'v-ros-fp', auth:'UIF', name:'Reporte de Operación Sospechosa (ROS) de Financiamiento de la Proliferación de Armas de Destrucción Masiva', meta:'24 horas desde la operación realizada o tentada — nuevo (Res. UIF 3/2026, vigente desde 8/1/2026)', freq:'Espontáneo'},
+];
+
+let viewYear, viewMonth, selectedDate=null, fyeMonth=11;
+let customItems = [];
+let hechosRelevantes = [];
+
+async function loadCustomItems(){
+  try{
+    const r = await window.storage.get('custom-items', true);
+    customItems = r && r.value ? JSON.parse(r.value) : [];
+  }catch(e){ customItems = []; }
+}
+async function saveCustomItems(){
+  try{ await window.storage.set('custom-items', JSON.stringify(customItems), true); }catch(e){ console.error('[calendario] error guardando custom-items:', e); }
+}
+async function loadHechos(){
+  try{
+    const r = await window.storage.get('hechos-relevantes', true);
+    hechosRelevantes = r && r.value ? JSON.parse(r.value) : [];
+  }catch(e){ hechosRelevantes = []; }
+}
+async function saveHechos(){
+  try{ await window.storage.set('hechos-relevantes', JSON.stringify(hechosRelevantes), true); }catch(e){ console.error('[calendario] error guardando hechos-relevantes:', e); }
+}
+function hechoAsItem(h){
+  const d = new Date(h.dueDate+'T00:00:00');
+  return {
+    id: h.id, auth:'CNV', name: h.desc, freq:'puntual', custom:true, hechoRelevante:true,
+    rule:{year:d.getFullYear(), month:d.getMonth(), day:d.getDate()},
+    meta:'hecho relevante — a informar de inmediato (RG 1162/2026, vigente desde 21/8/2026)'
+  };
+}
+function allItems(){ return ITEMS.concat(customItems).concat(hechosRelevantes.map(hechoAsItem)); }
+
+function computeDueDatesForItem(item, year){
+  // returns array of {due:Date, periodKey:string, label:string} occurrences relevant across a wide window
+  const out=[];
+  if(item.freq==='mensual'){
+    for(let m=-1;m<13;m++){
+      let refY=year, refM=m;
+      if(refM<0){refY=year-1; refM=11;}
+      if(refM>11){refY=year+1; refM=refM-12;}
+      let ref = lastDayOfMonth(refY, refM);
+      let due;
+      if(item.rule.type==='cal') due = addCalDays(ref, item.rule.days);
+      else if(item.rule.type==='biz') due = addBizDays(ref, item.rule.days);
+      else if(item.rule.type==='dom') due = domDate(refY, refM, item.rule.day);
+      else if(item.rule.type==='lastbiz') due = lastBizDayOfMonth(refY, refM);
+      else if(item.rule.type==='lastbiz-nextmonth'){
+        let nm=refM+1, ny=refY; if(nm>11){nm=0; ny=refY+1;}
+        due = lastBizDayOfMonth(ny, nm);
+      }
+      out.push({due, periodKey:refY+'-'+String(refM+1).padStart(2,'0'), label:MESES[refM]+' '+refY});
+    }
+  } else if(item.freq==='trimestral'){
+    const qMonths=[2,5,8,11];
+    [year-1,year,year+1].forEach(y=>{
+      qMonths.forEach(qm=>{
+        let due;
+        if(item.rule.type==='dom') due = domDate(y, qm, item.rule.day);
+        else due = addCalDays(lastDayOfMonth(y,qm), item.rule.days);
+        out.push({due, periodKey:y+'-Q'+qm, label:'trim. '+MESES[qm]+' '+y});
+      });
+    });
+  } else if(item.freq==='semestral'){
+    [year-1,year,year+1].forEach(y=>{
+      [fyeMonth, (fyeMonth+6)%12].forEach(sm=>{
+        let sy=y; if(sm<fyeMonth && fyeMonth+6>11) sy=y; // approx same year bucket
+        let due;
+        if(item.rule.type==='dom') due = domDate(sy, sm, item.rule.day);
+        else due = addCalDays(lastDayOfMonth(sy,sm), item.rule.days);
+        out.push({due, periodKey:sy+'-S'+sm, label:'semestre '+MESES[sm]+' '+sy});
+      });
+    });
+  } else if(item.freq==='semestral-cal'){
+    // semestral fijo por calendario (independiente del cierre de ejercicio) — ej. PLA/FT/FP: enero y julio
+    [year-1,year,year+1].forEach(y=>{
+      item.rule.months.forEach(sm=>{
+        const due = lastDayOfMonth(y, sm);
+        out.push({due, periodKey:y+'-S'+sm, label:'semestre '+MESES[sm]+' '+y});
+      });
+    });
+  } else if(item.freq==='anual'){
+    [year-1,year,year+1].forEach(y=>{
+      let due;
+      if(item.rule.type==='fixed') due=new Date(y, item.rule.month, item.rule.day);
+      else if(item.rule.type==='fixed-plus') due=addCalDays(new Date(y,item.rule.month,item.rule.day), item.rule.days);
+      else if(item.rule.type==='fye') due=addCalDays(lastDayOfMonth(y, fyeMonth), item.rule.days);
+      else if(item.rule.type==='fye-offset-months'){
+        let dm=fyeMonth+item.rule.months, dy=y;
+        if(dm>11){ dm-=12; dy+=1; }
+        due=new Date(dy, dm, item.rule.day);
+      }
+      else if(item.rule.type==='fye-lastday-offset-months'){
+        let dm=fyeMonth+item.rule.months, dy=y;
+        if(dm>11){ dm-=12; dy+=1; }
+        due=lastDayOfMonth(dy, dm);
+      }
+      out.push({due, periodKey:y+'', label:'año '+y});
+    });
+  } else if(item.freq==='puntual'){
+    const d = new Date(item.rule.year, item.rule.month, item.rule.day);
+    out.push({due:d, periodKey:'once', label:'presentación única'});
+  } else if(item.freq==='semanal'){
+    // generate weekly occurrences across year window
+    let d = new Date(year-1,0,1);
+    // move to first Sunday
+    while(d.getDay()!==0) d.setDate(d.getDate()+1);
+    let end = new Date(year+1,11,31);
+    while(d<=end){
+      let due = addBizDays(d, item.rule.days);
+      out.push({due, periodKey:ymd(d), label:'semana term. '+fmtDate(d)});
+      d.setDate(d.getDate()+7);
+    }
+  }
+  return out;
+}
+
+function getKey(itemId, periodKey){ return 'chk:'+itemId+':'+periodKey; }
+
+// Todos los checks se guardan como UN solo blob JSON (en vez de una llamada de guardado por check),
+// para no pisar el límite de velocidad de la API cuando se renderizan muchos ítems de una.
+let checkCache = {};
+let checksLoaded = false;
+async function loadAllChecks(){
+  if(checksLoaded) return;
+  try{
+    const r = await window.storage.get('checks-all', true);
+    checkCache = r && r.value ? JSON.parse(r.value) : {};
+  }catch(e){ checkCache = {}; }
+  checksLoaded = true;
+}
+async function loadCheck(key){
+  if(!checksLoaded) await loadAllChecks();
+  return !!checkCache[key];
+}
+async function toggleCheck(key){
+  if(!checksLoaded) await loadAllChecks();
+  const next = !checkCache[key];
+  checkCache[key] = next;
+  try{ await window.storage.set('checks-all', JSON.stringify(checkCache), true); }catch(e){ console.error('[calendario] error guardando checks-all', e); }
+  return next;
+}
+
+// Mismo criterio para las fechas cargadas manualmente de los ítems variables: un solo blob.
+let varDateCache = {};
+let varDatesLoaded = false;
+function varDateKey(vid, monthKey){ return 'vardate:'+vid+':'+monthKey; }
+async function loadAllVarDates(){
+  if(varDatesLoaded) return;
+  try{
+    const r = await window.storage.get('var-dates-all', true);
+    varDateCache = r && r.value ? JSON.parse(r.value) : {};
+  }catch(e){ varDateCache = {}; }
+  varDatesLoaded = true;
+}
+async function loadVarDate(vid, monthKey){
+  if(!varDatesLoaded) await loadAllVarDates();
+  const k = varDateKey(vid, monthKey);
+  return varDateCache[k] || null;
+}
+async function saveVarDate(vid, monthKey, dateStr){
+  if(!varDatesLoaded) await loadAllVarDates();
+  const k = varDateKey(vid, monthKey);
+  if(dateStr) varDateCache[k] = dateStr;
+  else delete varDateCache[k];
+  try{ await window.storage.set('var-dates-all', JSON.stringify(varDateCache), true); }catch(e){ console.error('[calendario] error guardando var-dates-all', e); }
+}
+
+async function loadSettings(){
+  try{
+    const r = await window.storage.get('settings:fye', true);
+    if(r && r.value!==undefined && r.value!==null && r.value!==''){ fyeMonth = parseInt(r.value,10); }
+  }catch(e){}
+  document.getElementById('fyeSelect').value = String(fyeMonth);
+}
+async function saveFye(v){
+  fyeMonth = v;
+  try{ await window.storage.set('settings:fye', String(v), true); }catch(e){}
+}
+
+function allOccurrencesForYearWindow(year){
+  let all=[];
+  allItems().forEach(item=>{
+    computeDueDatesForItem(item, year).forEach(occ=>{
+      all.push(Object.assign({item}, occ));
+    });
+  });
+  return all;
+}
+
+async function render(){
+  document.getElementById('monthLabel').textContent = MESES[viewMonth]+' '+viewYear;
+
+  // dow header
+  const dowRow = document.getElementById('dowRow');
+  dowRow.innerHTML='';
+  DOW.forEach(d=>{ const el=document.createElement('div'); el.className='cal-dow'; el.textContent=d; dowRow.appendChild(el); });
+
+  const occs = allOccurrencesForYearWindow(viewYear);
+  // resolve checked state for all occurrences in view (async but cache-warmed lazily)
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  // preload checks for occurrences whose due date is in this month +/- buffer, for dot rendering
+  let monthOccs = occs.filter(o=> o.due.getFullYear()===viewYear && o.due.getMonth()===viewMonth);
+  await Promise.all(monthOccs.map(o=>loadCheck(getKey(o.item.id, o.periodKey))));
+
+  // variable items (AFIP, etc.) with a manually-assigned date for THIS month get folded into monthOccs too,
+  // so they show up pinned on the grid and in the main list, same as everything else.
+  const curMonthKey = viewYear+'-'+String(viewMonth+1).padStart(2,'0');
+  const varOccs = [];
+  for(const v of VARIABLE_ITEMS){
+    const vid = 'var-'+v.id;
+    const dateStr = await loadVarDate(vid, curMonthKey);
+    if(dateStr){
+      const [dy,dm,dd] = dateStr.split('-').map(Number);
+      const due = new Date(dy, dm-1, dd);
+      const pseudoItem = {id:vid, auth:v.auth, name:v.name, meta:v.meta+' — fecha cargada manualmente', freq:v.freq, variableDated:true};
+      const occ = {due, periodKey:curMonthKey, label:MESES[viewMonth]+' '+viewYear, item:pseudoItem};
+      await loadCheck(getKey(vid, curMonthKey));
+      varOccs.push(occ);
+    }
+  }
+  monthOccs = monthOccs.concat(varOccs);
+
+  // build day grid
+  const first = new Date(viewYear, viewMonth, 1);
+  let startOffset = (first.getDay()+6)%7; // convert Sun=0 -> make Monday first
+  const daysInMonth = lastDayOfMonth(viewYear, viewMonth).getDate();
+  const grid = document.getElementById('dayGrid');
+  grid.innerHTML='';
+
+  for(let i=0;i<startOffset;i++){
+    const el=document.createElement('div'); el.className='cal-day empty'; grid.appendChild(el);
+  }
+  for(let day=1; day<=daysInMonth; day++){
+    const d = new Date(viewYear, viewMonth, day);
+    const el = document.createElement('div');
+    const hName = holidayName(d);
+    el.className='cal-day';
+    if(isWeekend(d)) el.className+=' weekend';
+    if(hName) el.className+=' holiday';
+    if(sameDay(d, today)) el.className+=' today';
+    if(selectedDate && sameDay(d, selectedDate)) el.className+=' selected';
+    if(hName) el.title = hName;
+    const num = document.createElement('div'); num.className='day-num'; num.textContent=day;
+    el.appendChild(num);
+    if(hName){
+      const hLabel=document.createElement('div'); hLabel.className='holiday-label'; hLabel.textContent=hName;
+      el.appendChild(hLabel);
+    }
+    const dotsWrap = document.createElement('div'); dotsWrap.className='day-dots';
+    const dayOccs = monthOccs.filter(o=>sameDay(o.due, d));
+    dayOccs.slice(0,8).forEach(o=>{
+      const checked = checkCache[getKey(o.item.id,o.periodKey)];
+      const overdue = !checked && d < today;
+      const color = authColor(o.item.auth);
+      const title = o.item.auth+' — '+o.item.name+(checked?' (cumplido)':overdue?' (vencido)':'');
+      let node;
+      if(checked){
+        node = document.createElement('span');
+        node.className='dot dot-check';
+        node.title = title;
+        node.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="6" fill="'+color+'"/><path d="M3.2 6.3l1.9 1.9L8.9 4.3" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      } else if(o.item.hechoRelevante){
+        node = document.createElement('span');
+        node.className='dot dot-alert'+(overdue?' overdue':'');
+        node.title = title;
+        node.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 1 L11 10 L1 10 Z" fill="'+(overdue?'#A6432F':'#B5762A')+'"/><rect x="5.3" y="4" width="1.4" height="3" fill="#fff"/><rect x="5.3" y="7.4" width="1.4" height="1.3" fill="#fff"/></svg>';
+      } else {
+        node = document.createElement('span');
+        node.className='dot';
+        node.style.background = color;
+        node.title = title;
+        node.style.border = overdue ? '2px solid var(--rust)' : '2px solid transparent';
+      }
+      dotsWrap.appendChild(node);
+    });
+    el.appendChild(dotsWrap);
+    el.addEventListener('click', ()=>{
+      selectedDate=d;
+      render();
+      const panel = document.getElementById('panelTitle');
+      if(panel) panel.scrollIntoView({behavior:'smooth', block:'start'});
+    });
+    grid.appendChild(el);
+  }
+
+  // item list: everything due in the visible month, sorted by date
+  // (or just the selected day, if one was tapped in the grid)
+  const list = document.getElementById('itemList');
+  list.innerHTML='';
+  const isFiltered = selectedDate && selectedDate.getFullYear()===viewYear && selectedDate.getMonth()===viewMonth;
+  let displayOccs = (isFiltered ? monthOccs.filter(o=>sameDay(o.due, selectedDate)) : monthOccs).slice().sort((a,b)=>a.due-b.due);
+
+  const panelTitleEl = document.getElementById('panelTitle');
+  panelTitleEl.innerHTML='';
+  const titleText = document.createElement('span');
+  titleText.textContent = isFiltered ? ('Presentaciones del '+selectedDate.getDate()+' de '+MESES[selectedDate.getMonth()]) : 'Presentaciones del mes';
+  panelTitleEl.appendChild(titleText);
+  const countSpan = document.createElement('span'); countSpan.className='count'; countSpan.id='monthCount';
+  countSpan.textContent = '('+displayOccs.length+')';
+  panelTitleEl.appendChild(countSpan);
+  if(isFiltered){
+    const clearEl = document.createElement('span'); clearEl.className='clear-filter'; clearEl.textContent='ver todo el mes ✕';
+    clearEl.addEventListener('click', ()=>{ selectedDate=null; render(); });
+    panelTitleEl.appendChild(clearEl);
+  }
+
+  if(displayOccs.length===0){
+    list.innerHTML = '<div class="empty-state">'+(isFiltered ? 'Sin presentaciones ese día.' : 'Sin presentaciones con fecha fija este mes.')+'</div>';
+  }
+
+  displayOccs.forEach(o=>{
+    const key = getKey(o.item.id, o.periodKey);
+    const checked = checkCache[key];
+    const overdue = !checked && o.due < today;
+    const row = document.createElement('div');
+    row.className = 'item-row'+(checked?' done':'')+(overdue?' overdue':'');
+
+    const chk = document.createElement('div');
+    chk.className = 'chk'+(checked?' checked':'');
+    chk.addEventListener('click', async ()=>{
+      const nowChecked = await toggleCheck(key);
+      render();
+    });
+    row.appendChild(chk);
+
+    const body = document.createElement('div');
+    body.className='item-body';
+    const top = document.createElement('div'); top.className='item-top';
+    const authEl = document.createElement('span'); authEl.className='item-authority'; authEl.textContent=o.item.auth;
+    authEl.style.background = authColor(o.item.auth);
+    const freqEl = document.createElement('span'); freqEl.className='item-freq'; freqEl.textContent=o.item.freq;
+    top.appendChild(authEl); top.appendChild(freqEl);
+    if(o.item.nuevo){
+      const badge=document.createElement('span'); badge.className='item-freq'; badge.style.color='#B5762A'; badge.textContent='· '+o.item.nuevo;
+      top.appendChild(badge);
+    }
+    if(o.item.custom && !o.item.hechoRelevante){
+      const badge=document.createElement('span'); badge.className='item-freq'; badge.style.color='#B5762A'; badge.textContent='· agregado';
+      top.appendChild(badge);
+    }
+    if(o.item.hechoRelevante){
+      const badge=document.createElement('span'); badge.className='item-freq'; badge.style.color='var(--rust)'; badge.textContent='· hecho relevante';
+      top.appendChild(badge);
+    }
+    if(o.item.variableDated){
+      const badge=document.createElement('span'); badge.className='item-freq'; badge.style.color='#B5762A'; badge.textContent='· fecha cargada';
+      top.appendChild(badge);
+    }
+    body.appendChild(top);
+    const nameEl=document.createElement('div'); nameEl.className='item-name'; nameEl.textContent=o.item.name;
+    body.appendChild(nameEl);
+    const metaEl=document.createElement('div'); metaEl.className='item-meta'; metaEl.textContent=o.item.meta+' — '+o.label;
+    body.appendChild(metaEl);
+    row.appendChild(body);
+
+    const dateEl = document.createElement('div'); dateEl.className='item-date'; dateEl.textContent=fmtDate(o.due);
+    row.appendChild(dateEl);
+
+    if(o.item.custom){
+      const delEl = document.createElement('div'); delEl.className='item-del'; delEl.textContent='✕'; delEl.title='Eliminar';
+      delEl.addEventListener('click', async (ev)=>{
+        ev.stopPropagation();
+        if(o.item.hechoRelevante){
+          hechosRelevantes = hechosRelevantes.filter(h=>h.id!==o.item.id);
+          await saveHechos();
+        } else {
+          customItems = customItems.filter(ci=>ci.id!==o.item.id);
+          await saveCustomItems();
+        }
+        render();
+      });
+      row.appendChild(delEl);
+    }
+    if(o.item.variableDated){
+      const delEl = document.createElement('div'); delEl.className='item-del'; delEl.textContent='✕'; delEl.title='Quitar fecha';
+      delEl.addEventListener('click', async (ev)=>{
+        ev.stopPropagation();
+        await saveVarDate(o.item.id, o.periodKey, null);
+        render();
+      });
+      row.appendChild(delEl);
+    }
+
+    if(checked){
+      const stamp=document.createElement('div'); stamp.className='stamp'; stamp.textContent='cumplido';
+      row.appendChild(stamp);
+    }
+
+    list.appendChild(row);
+  });
+
+  // variable section (always visible, grouped by freq) — checks are per displayed month
+  const varWrap = document.getElementById('variableSection');
+  varWrap.innerHTML='';
+  const divider=document.createElement('div'); divider.className='section-divider';
+  divider.textContent='Sin fecha fija — vencimientos de '+MESES[viewMonth]+' '+viewYear;
+  varWrap.appendChild(divider);
+  const arcaNote=document.createElement('div');
+  arcaNote.style.cssText='font-size:11.5px;color:var(--slate);margin-bottom:10px; line-height:1.5;';
+  arcaNote.innerHTML='Cronograma oficial ARCA (ex AFIP) por terminación de CUIT: <a href="'+ARCA_URL+'" target="_blank" rel="noopener" style="color:var(--ink-soft);">argentina.gob.ar/arca/vencimientos</a> — '
+    + 'entrá ahí, confirmá el día exacto de este mes y cargalo en el campo "Fecha de '+MESES[viewMonth]+'" de cada ítem. '
+    + 'Al poner una fecha, ese ítem también aparece pineado arriba en la grilla y en "Presentaciones del mes", igual que los demás. '
+    + '<b>Tanto la fecha como el tilde son por mes:</b> lo que cargues estando en '+MESES[viewMonth]+' queda solo para '+MESES[viewMonth]
+    + '; al pasar a '+MESES[(viewMonth+1)%12]+' el campo va a estar vacío de nuevo, listo para el vencimiento de ese mes.';
+  varWrap.appendChild(arcaNote);
+  const varList=document.createElement('div'); varList.className='item-list';
+  const monthKey = viewYear+'-'+String(viewMonth+1).padStart(2,'0');
+  for(const v of VARIABLE_ITEMS){
+    const vid = 'var-'+v.id;
+    const key = getKey(vid, monthKey);
+    const checked = await loadCheck(key);
+    const assignedDate = await loadVarDate(vid, monthKey);
+    const row=document.createElement('div'); row.className='item-row'+(checked?' done':'');
+    const chk=document.createElement('div'); chk.className='chk'+(checked?' checked':'');
+    chk.addEventListener('click', async ()=>{ await toggleCheck(key); render(); });
+    row.appendChild(chk);
+    const body=document.createElement('div'); body.className='item-body';
+    const top=document.createElement('div'); top.className='item-top';
+    const authEl=document.createElement('span'); authEl.className='item-authority'; authEl.textContent=v.auth;
+    authEl.style.background = authColor(v.auth);
+    const freqEl=document.createElement('span'); freqEl.className='item-freq'; freqEl.textContent=v.freq;
+    top.appendChild(authEl); top.appendChild(freqEl);
+    if(assignedDate){
+      const badge=document.createElement('span'); badge.className='item-freq'; badge.style.color='#B5762A';
+      badge.textContent='· vence '+fmtDate(new Date(assignedDate+'T00:00:00'));
+      top.appendChild(badge);
+    }
+    body.appendChild(top);
+    const nameEl=document.createElement('div'); nameEl.className='item-name'; nameEl.textContent=v.name;
+    body.appendChild(nameEl);
+    const noteEl=document.createElement('div'); noteEl.className='variable-note'; noteEl.textContent=v.meta;
+    body.appendChild(noteEl);
+    const dateRow=document.createElement('div');
+    dateRow.style.cssText='display:flex;align-items:center;gap:6px;margin-top:6px;';
+    const dateLabel=document.createElement('span');
+    dateLabel.style.cssText='font-family:var(--mono);font-size:10px;color:var(--slate);text-transform:uppercase;letter-spacing:0.3px;';
+    dateLabel.textContent='Fecha de '+MESES[viewMonth]+':';
+    const dateInput=document.createElement('input'); dateInput.type='date';
+    dateInput.style.cssText='font-family:var(--sans);font-size:11.5px;padding:4px 6px;border:1px solid var(--line);border-radius:3px;background:var(--paper);color:var(--ink);';
+    if(assignedDate) dateInput.value = assignedDate;
+    dateInput.addEventListener('change', async ()=>{
+      await saveVarDate(vid, monthKey, dateInput.value || null);
+      render();
+    });
+    dateRow.appendChild(dateLabel); dateRow.appendChild(dateInput);
+    if(assignedDate){
+      const clearBtn=document.createElement('span');
+      clearBtn.textContent='quitar'; clearBtn.title='Quitar fecha';
+      clearBtn.style.cssText='font-family:var(--mono);font-size:10px;color:var(--slate);text-decoration:underline;cursor:pointer;';
+      clearBtn.addEventListener('click', async ()=>{ await saveVarDate(vid, monthKey, null); render(); });
+      dateRow.appendChild(clearBtn);
+    }
+    body.appendChild(dateRow);
+    if(v.link){
+      const linkEl=document.createElement('a'); linkEl.href=v.link; linkEl.target='_blank'; linkEl.rel='noopener';
+      linkEl.textContent='Ver en ARCA →';
+      linkEl.style.cssText='font-family:var(--mono);font-size:10px;color:var(--ink-soft);display:inline-block;margin-top:4px;';
+      body.appendChild(linkEl);
+    }
+    row.appendChild(body);
+    if(checked){ const stamp=document.createElement('div'); stamp.className='stamp'; stamp.textContent='cumplido'; row.appendChild(stamp); }
+    varList.appendChild(row);
+  }
+  varWrap.appendChild(varList);
+
+  await renderHechosBanner();
+}
+
+document.getElementById('prevBtn').addEventListener('click', ()=>{
+  viewMonth--; if(viewMonth<0){viewMonth=11; viewYear--;}
+  render();
+});
+document.getElementById('nextBtn').addEventListener('click', ()=>{
+  viewMonth++; if(viewMonth>11){viewMonth=0; viewYear++;}
+  render();
+});
+document.getElementById('todayBtn').addEventListener('click', ()=>{
+  const t=new Date(); viewYear=t.getFullYear(); viewMonth=t.getMonth(); selectedDate=null;
+  render();
+});
+document.getElementById('fyeSelect').addEventListener('change', async (e)=>{
+  await saveFye(parseInt(e.target.value,10));
+  render();
+});
+
+// ---------- add-item modal ----------
+const overlay = document.getElementById('addModalOverlay');
+const freqSelect = document.getElementById('addFreq');
+const recurringFields = document.getElementById('addRecurringFields');
+const anualFields = document.getElementById('addAnualFields');
+const puntualFields = document.getElementById('addPuntualFields');
+const recurringSuffix = document.getElementById('addRecurringSuffix');
+const recurringModeSelect = document.getElementById('addRecurringMode');
+const domFields = document.getElementById('addDomFields');
+const offsetFields = document.getElementById('addOffsetFields');
+const domSuffix = document.getElementById('addDomSuffix');
+
+const suffixByFreq = {
+  mensual: 'de finalizado el mes',
+  trimestral: 'de finalizado el trimestre',
+  semestral: 'de finalizado el semestre'
+};
+const domSuffixByFreq = {
+  mensual: 'de cada mes',
+  trimestral: 'del último mes de cada trimestre',
+  semestral: 'del último mes de cada semestre'
+};
+
+function updateModalFields(){
+  const f = freqSelect.value;
+  recurringFields.classList.toggle('hidden', !(f==='mensual'||f==='trimestral'||f==='semestral'));
+  anualFields.classList.toggle('hidden', f!=='anual');
+  puntualFields.classList.toggle('hidden', f!=='puntual');
+  if(suffixByFreq[f]) recurringSuffix.textContent = suffixByFreq[f];
+  if(domSuffixByFreq[f]) domSuffix.textContent = domSuffixByFreq[f];
+  updateRecurringMode();
+}
+function updateRecurringMode(){
+  const mode = recurringModeSelect.value;
+  domFields.classList.toggle('hidden', mode!=='dom');
+  offsetFields.classList.toggle('hidden', mode!=='offset');
+}
+freqSelect.addEventListener('change', updateModalFields);
+recurringModeSelect.addEventListener('change', updateRecurringMode);
+
+function openModal(){
+  document.getElementById('addAuth').value='';
+  document.getElementById('addName').value='';
+  freqSelect.value='mensual';
+  recurringModeSelect.value='dom';
+  document.getElementById('addDom').value='19';
+  document.getElementById('addDays').value='10';
+  document.getElementById('addDaysType').value='cal';
+  document.getElementById('addAnualDate').value='';
+  document.getElementById('addPuntualDate').value='';
+  updateModalFields();
+  overlay.classList.remove('hidden');
+}
+function closeModal(){ overlay.classList.add('hidden'); }
+
+document.getElementById('openAddBtn').addEventListener('click', openModal);
+document.getElementById('cancelAddBtn').addEventListener('click', closeModal);
+overlay.addEventListener('click', (e)=>{ if(e.target===overlay) closeModal(); });
+
+document.getElementById('saveAddBtn').addEventListener('click', async ()=>{
+  const auth = document.getElementById('addAuth').value.trim() || 'Otro';
+  const name = document.getElementById('addName').value.trim();
+  if(!name){ document.getElementById('addName').focus(); return; }
+  const freq = freqSelect.value;
+  const id = 'custom-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);
+  let item = {id, auth, name, freq, custom:true};
+
+  if(freq==='mensual'||freq==='trimestral'||freq==='semestral'){
+    const mode = recurringModeSelect.value;
+    if(mode==='dom'){
+      const dom = parseInt(document.getElementById('addDom').value,10) || 1;
+      item.rule = {type:'dom', day:dom};
+      item.meta = 'vence el día '+dom+' '+domSuffixByFreq[freq];
+    } else {
+      const days = parseInt(document.getElementById('addDays').value,10) || 0;
+      const type = document.getElementById('addDaysType').value;
+      item.rule = {type, days};
+      const unit = type==='biz' ? 'días hábiles' : 'días corridos';
+      item.meta = days+' '+unit+' '+suffixByFreq[freq];
+    }
+  } else if(freq==='anual'){
+    const val = document.getElementById('addAnualDate').value;
+    if(!val){ document.getElementById('addAnualDate').focus(); return; }
+    const [y,m,d] = val.split('-').map(Number);
+    item.rule = {type:'fixed', month:m-1, day:d};
+    item.meta = 'se repite cada '+d+' de '+MESES[m-1];
+  } else if(freq==='puntual'){
+    const val = document.getElementById('addPuntualDate').value;
+    if(!val){ document.getElementById('addPuntualDate').focus(); return; }
+    const [y,m,d] = val.split('-').map(Number);
+    item.rule = {year:y, month:m-1, day:d};
+    item.meta = 'presentación única';
+  }
+
+  customItems.push(item);
+  await saveCustomItems();
+  closeModal();
+  render();
+});
+
+// ---------- hecho relevante modal ----------
+const hechoOverlay = document.getElementById('hechoModalOverlay');
+function openHechoModal(){
+  document.getElementById('hechoDesc').value='';
+  document.getElementById('hechoDate').value = ymd(new Date());
+  hechoOverlay.classList.remove('hidden');
+}
+function closeHechoModal(){ hechoOverlay.classList.add('hidden'); }
+document.getElementById('openHechoBtn').addEventListener('click', openHechoModal);
+document.getElementById('cancelHechoBtn').addEventListener('click', closeHechoModal);
+hechoOverlay.addEventListener('click', (e)=>{ if(e.target===hechoOverlay) closeHechoModal(); });
+
+document.getElementById('saveHechoBtn').addEventListener('click', async ()=>{
+  const desc = document.getElementById('hechoDesc').value.trim();
+  const dateVal = document.getElementById('hechoDate').value;
+  if(!desc){ document.getElementById('hechoDesc').focus(); return; }
+  if(!dateVal){ document.getElementById('hechoDate').focus(); return; }
+  const [y,m,d] = dateVal.split('-').map(Number);
+  const factDate = new Date(y, m-1, d);
+  const due = factDate; // RG 1162/2026: informar "en forma inmediata" — sin ventana de días
+  const id = 'hr-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);
+  hechosRelevantes.push({ id, desc, factDate: ymd(factDate), dueDate: ymd(due) });
+  await saveHechos();
+  closeHechoModal();
+  render();
+});
+
+async function renderHechosBanner(){
+  const wrap = document.getElementById('hechosBanner');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const pending = [];
+  for(const h of hechosRelevantes){
+    const key = getKey(h.id, 'once');
+    const checked = await loadCheck(key);
+    if(!checked) pending.push(h);
+  }
+  if(pending.length===0){ wrap.innerHTML=''; return; }
+  pending.sort((a,b)=> new Date(a.factDate)-new Date(b.factDate));
+  wrap.innerHTML='';
+  const box=document.createElement('div'); box.className='hechos-banner';
+  const title=document.createElement('div'); title.className='hechos-banner-title';
+  title.textContent='⚠ Hechos relevantes pendientes de presentar ('+pending.length+')';
+  box.appendChild(title);
+  pending.forEach(h=>{
+    const fact = new Date(h.factDate+'T00:00:00');
+    const daysSince = Math.round((today - fact) / 86400000);
+    const overdue = daysSince >= 1;
+    const row=document.createElement('div'); row.className='hecho-row';
+    const chk=document.createElement('div'); chk.className='chk';
+    chk.addEventListener('click', async ()=>{ await toggleCheck(getKey(h.id,'once')); render(); });
+    row.appendChild(chk);
+    const body=document.createElement('div'); body.className='hecho-body';
+    const descEl=document.createElement('div'); descEl.className='hecho-desc'; descEl.textContent=h.desc;
+    body.appendChild(descEl);
+    const dueEl=document.createElement('div'); dueEl.className='hecho-due'+(overdue?'':' ok');
+    dueEl.textContent = (overdue
+      ? 'VENCIDO — hecho del '+fmtDate(fact)+' (hace '+daysSince+' día'+(daysSince===1?'':'s')+', debía informarse de inmediato)'
+      : 'URGENTE — informar hoy mismo (hecho de hoy, '+fmtDate(fact)+')');
+    body.appendChild(dueEl);
+    row.appendChild(body);
+    box.appendChild(row);
+  });
+  wrap.appendChild(box);
+}
+
+(async function init(){
+  const t = new Date();
+  viewYear = t.getFullYear(); viewMonth = t.getMonth();
+  await loadSettings();
+  await loadCustomItems();
+  await loadHechos();
+  await loadAllChecks();
+  await loadAllVarDates();
+  await render();
+})();
+
+})();
+</script>
+</body>
+</html>
