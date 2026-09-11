@@ -670,8 +670,8 @@ const ITEMS = [
   {id:'m-cd-diario', auth:'CNV', name:'Copiado a CD — Libro Diario', freq:'mensual', rule:{type:'biz', days:10}, meta:'10 días hábiles de finalizado el mes'},
   {id:'m-cd-clientes', auth:'CNV', name:'Copiado a CD — Libro de Operaciones de Clientes', freq:'mensual', rule:{type:'biz', days:10}, meta:'10 días hábiles de finalizado el mes'},
   {id:'m-cd-exterior', auth:'CNV', name:'Copiado de libro del exterior', freq:'mensual', rule:{type:'biz', days:10}, meta:'10 días hábiles de finalizado el mes'},
-  {id:'m-rsm', auth:'UIF', name:'Detalle de cuentas comitentes activas e inactivas (RSM)', freq:'mensual', rule:{type:'lastbiz'}, meta:'entre el 15 y el último día hábil del mes'},
-  {id:'m-rti', auth:'UIF', name:'Transferencias internacionales de valores negociables (RTI)', freq:'mensual', rule:{type:'lastbiz'}, meta:'entre el 15 y el último día hábil del mes'},
+  {id:'m-rsm', auth:'UIF', name:'Detalle de cuentas comitentes activas e inactivas (RSM)', freq:'mensual', rule:{type:'dom', day:15}, meta:'hasta el día 15 de cada mes'},
+  {id:'m-rti', auth:'UIF', name:'Transferencias internacionales de valores negociables (RTI)', freq:'mensual', rule:{type:'dom', day:15}, meta:'hasta el día 15 de cada mes'},
   {id:'m-sire', auth:'AFIP', name:'RG 3364/12 — Terceros intervinientes y beneficiarios del exterior (SIRE)', freq:'mensual', rule:{type:'lastbiz-nextmonth'}, meta:'último día hábil del mes siguiente'},
   {id:'m-siter', auth:'AFIP', name:'SITER — Transacciones Económicas Relevantes', freq:'mensual', rule:{type:'lastbiz-nextmonth'}, meta:'último día hábil del mes siguiente'},
 
