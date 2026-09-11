@@ -292,7 +292,7 @@
         <span class="brand-wordmark" role="img" aria-label="Equanima Securities"></span>
       </div>
       <div class="cal-title">Calendario de Presentaciones — MCM</div>
-      <div class="cal-sub">CNV · UIF · AFIP · DPJ · SSN</div>
+      <div class="cal-sub">CNV · UIF · AFIP · DPJ</div>
     </div>
     <div class="cal-legend" id="calLegend">
       <span><span class="dot" style="width:12px;height:12px;display:inline-flex;"><svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="6" fill="#8B93A0"/><path d="M3.2 6.3l1.9 1.9L8.9 4.3" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>cumplido</span>
@@ -303,7 +303,6 @@
       <span class="auth-chip" style="background:#6B4C86">UIF</span>
       <span class="auth-chip" style="background:#2E7D62">AFIP</span>
       <span class="auth-chip" style="background:#8A6B2C">DPJ</span>
-      <span class="auth-chip" style="background:#B5622A">SSN</span>
       <span style="width:1px;height:14px;background:var(--line);"></span>
       <span><span class="dot" style="background:var(--rust-bg); border:1px solid var(--rust);"></span>feriado</span>
       <span><span class="dot" style="background:var(--sky-bg); border:1px solid var(--sky);"></span>hoy</span>
@@ -367,7 +366,7 @@
     <div class="modal-title">Nueva presentación</div>
 
     <label class="field-label">Organismo</label>
-    <input type="text" id="addAuth" placeholder="CNV, UIF, AFIP, DPJ, SSN...">
+    <input type="text" id="addAuth" placeholder="CNV, UIF, AFIP, DPJ...">
 
     <label class="field-label">Nombre / obligación</label>
     <input type="text" id="addName" placeholder="Ej: Informe especial requerido por...">
@@ -637,7 +636,7 @@ function isNonBusinessDay(d){ return isWeekend(d) || isHoliday(d); }
 
 // authority colors
 const AUTH_COLORS = {
-  'CNV':'#0E3852', 'UIF':'#6B4C86', 'AFIP':'#2E7D62', 'DPJ':'#8A6B2C', 'SSN':'#B5622A'
+  'CNV':'#0E3852', 'UIF':'#6B4C86', 'AFIP':'#2E7D62', 'DPJ':'#8A6B2C'
 };
 function authColor(auth){
   const key=(auth||'').toUpperCase().trim();
@@ -660,7 +659,6 @@ const ITEMS = [
   // MENSUAL - fechas calculables
   {id:'m-reclamos', auth:'CNV', name:'Informe de reclamos y/o denuncias de clientes', freq:'mensual', rule:{type:'cal', days:2}, meta:'2 días corridos de finalizado el mes'},
   {id:'m-acdi', auth:'CNV', name:'ACDI — Cuotapartistas que suscribieron FCI', freq:'mensual', rule:{type:'cal', days:3}, meta:'3 días corridos de finalizado el mes'},
-  {id:'m-ssn', auth:'SSN', name:'Tenencias en FCI por ACDI (Resolución 1047 SSN)', freq:'mensual', rule:{type:'biz', days:5}, meta:'5 días hábiles de finalizado el mes'},
   {id:'m-rg1130-liq', auth:'CNV', name:'RG 1130/2026 — Indicadores de liquidez y apalancamiento', freq:'mensual', rule:{type:'biz', days:8}, meta:'8 días hábiles de finalizado el mes', nuevo:'RG 1130/2026'},
   {id:'m-rg1130-me', auth:'CNV', name:'RG 1130/2026 — Tenencias diarias de moneda extranjera (cartera propia)', freq:'mensual', rule:{type:'biz', days:10}, meta:'10 días hábiles de finalizado el mes', nuevo:'RG 1130/2026'},
   {id:'m-rg1122-pasivos', auth:'CNV', name:'RG 1122/2026 — Pasivos financieros del Agente', freq:'mensual', rule:{type:'biz', days:3}, meta:'3 días hábiles de finalizado el mes — Portal AIF, formulario AGE_030', nuevo:'RG 1122/2026'},
