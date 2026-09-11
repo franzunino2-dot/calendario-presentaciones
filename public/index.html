@@ -3,26 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="/brand/equanima-icon.png">
 <title>Calendario de Presentaciones — MCM</title>
 <style>
   :root{
-    --ink:#1F3050;
-    --ink-soft:#3E5271;
-    --paper:#F7F5F0;
+    /* Paleta y tipografía: Equanima Securities (equanimasecurities.com) */
+    --ink:#0E3852;
+    --ink-soft:#17567A;
+    --paper:#F6F8FA;
     --paper-raised:#FFFFFF;
-    --line:#D9D4C8;
+    --line:#D3DCE1;
     --amber:#B5762A;
     --amber-bg:#F4E6D3;
-    --sage:#3F6B4F;
-    --sage-bg:#E1EBE3;
+    --sage:#2E7D62;
+    --sage-bg:#DCEEE6;
     --rust:#A6432F;
     --rust-bg:#F3E0DA;
-    --sky:#2B5F8A;
-    --sky-bg:#D9E6EF;
-    --slate:#6B7688;
-    --serif: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
-    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-    --mono: 'SF Mono', 'Courier New', ui-monospace, monospace;
+    --sky:#2E8FAE;
+    --sky-bg:#DCF0F5;
+    --slate:#6B7A87;
+    --serif: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;background:var(--paper);}
@@ -41,8 +43,18 @@
     border-bottom:2px solid var(--ink); padding-bottom:14px; margin-bottom:20px;
     flex-wrap:wrap; gap:14px;
   }
+  .brand-row{display:flex; align-items:center; gap:8px; margin-bottom:9px;}
+  .brand-icon{width:20px; height:20px; border-radius:6px; display:block; flex:0 0 auto;}
+  .brand-wordmark{
+    display:inline-block; width:116px; height:26px; flex:0 0 auto;
+    background-color:var(--ink);
+    -webkit-mask-image:url('/brand/equanima-wordmark.png'); mask-image:url('/brand/equanima-wordmark.png');
+    -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+    -webkit-mask-size:contain; mask-size:contain;
+    -webkit-mask-position:left center; mask-position:left center;
+  }
   .cal-title{
-    font-family:var(--serif); font-size:24px; font-weight:700; letter-spacing:0.2px;
+    font-family:var(--serif); font-size:22px; font-weight:700; letter-spacing:0.1px;
     color:var(--ink);
   }
   .cal-sub{
@@ -89,19 +101,19 @@
   .cal-grid{ display:grid; grid-template-columns:repeat(7,1fr);}
   .cal-dow{
     font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:0.6px; color:var(--slate);
-    text-align:center; padding:9px 0; border-bottom:1px solid var(--line); background:#F1EEE6;
+    text-align:center; padding:9px 0; border-bottom:1px solid var(--line); background:#EEF2F5;
   }
   .cal-day{
     min-height:76px; border-right:1px solid var(--line); border-bottom:1px solid var(--line);
     padding:6px 6px; position:relative; cursor:default; transition:background .15s;
   }
   .cal-day:nth-child(7n){border-right:none;}
-  .cal-day.empty{background:#F1EEE6;}
-  .cal-day.weekend{background:#F3F1EA;}
+  .cal-day.empty{background:#EEF2F5;}
+  .cal-day.weekend{background:#F1F5F7;}
   .cal-day.holiday{background:var(--rust-bg);}
   .cal-day.today{background:var(--sky-bg);}
-  .cal-day.selected{background:#E9E2D0; outline:2px solid var(--ink); outline-offset:-2px;}
-  .cal-day:not(.empty):hover{background:#EFEAE0; cursor:pointer;}
+  .cal-day.selected{background:#E3EAEE; outline:2px solid var(--ink); outline-offset:-2px;}
+  .cal-day:not(.empty):hover{background:#ECF1F4; cursor:pointer;}
   .day-num{font-family:var(--mono); font-size:11.5px; color:var(--ink-soft);}
   .cal-day.today .day-num{font-weight:700; color:var(--sky);}
   .cal-day.holiday .day-num{color:var(--rust); font-weight:700;}
@@ -123,7 +135,7 @@
     background:var(--paper-raised); border:1px solid var(--line); border-radius:4px;
     padding:11px 14px; display:flex; align-items:flex-start; gap:12px; position:relative; overflow:hidden;
   }
-  .item-row.done{background:var(--sage-bg); border-color:#C7D9CB;}
+  .item-row.done{background:var(--sage-bg); border-color:#BFE0D2;}
   .item-row.overdue{border-color:#E0BCAF;}
 
   .chk{
@@ -145,7 +157,7 @@
   }
   .item-freq{font-family:var(--mono); font-size:9.5px; color:var(--slate); text-transform:uppercase; letter-spacing:0.4px;}
   .item-name{font-size:13.5px; color:var(--ink); line-height:1.4;}
-  .item-row.done .item-name{color:#4C6B54;}
+  .item-row.done .item-name{color:#275E4C;}
   .item-meta{font-family:var(--mono); font-size:10.5px; color:var(--slate); margin-top:4px;}
   .item-date{font-family:var(--mono); font-size:11px; color:var(--amber); font-weight:600; white-space:nowrap; padding-top:2px;}
   .item-row.done .item-date{color:var(--sage);}
@@ -216,7 +228,7 @@
   .hr-info summary::-webkit-details-marker{display:none;}
   .hr-info summary::before{content:'▸'; font-size:10px; color:var(--slate); transition:transform .15s;}
   .hr-info[open] summary::before{transform:rotate(90deg);}
-  .hr-info summary:hover{background:#F7F5F0;}
+  .hr-info summary:hover{background:#F1F5F7;}
   .hr-info-body{padding:4px 16px 16px; border-top:1px solid var(--line);}
   .hr-info-body p{font-size:12px; color:var(--ink-soft); line-height:1.6; margin:10px 0;}
   .hr-cat{margin-top:14px;}
@@ -275,6 +287,10 @@
 <div class="cal-root" id="calRoot">
   <div class="cal-header">
     <div>
+      <div class="brand-row">
+        <img src="/brand/equanima-icon.png" alt="" class="brand-icon">
+        <span class="brand-wordmark" role="img" aria-label="Equanima Securities"></span>
+      </div>
       <div class="cal-title">Calendario de Presentaciones — MCM</div>
       <div class="cal-sub">CNV · UIF · AFIP · DPJ · SSN</div>
     </div>
@@ -283,7 +299,7 @@
       <span><span class="dot ring-sample overdue" style="background:#8B93A0"></span>vencido</span>
       <span><span class="dot" style="width:12px;height:12px;display:inline-flex;"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 1 L11 10 L1 10 Z" fill="#B5762A"/><rect x="5.3" y="4" width="1.4" height="3" fill="#fff"/><rect x="5.3" y="7.4" width="1.4" height="1.3" fill="#fff"/></svg></span>hecho relevante</span>
       <span style="width:1px;height:14px;background:var(--line);"></span>
-      <span class="auth-chip" style="background:#2C4F73">CNV</span>
+      <span class="auth-chip" style="background:#0E3852">CNV</span>
       <span class="auth-chip" style="background:#6B4C86">UIF</span>
       <span class="auth-chip" style="background:#2E7D62">AFIP</span>
       <span class="auth-chip" style="background:#8A6B2C">DPJ</span>
@@ -621,7 +637,7 @@ function isNonBusinessDay(d){ return isWeekend(d) || isHoliday(d); }
 
 // authority colors
 const AUTH_COLORS = {
-  'CNV':'#2C4F73', 'UIF':'#6B4C86', 'AFIP':'#2E7D62', 'DPJ':'#8A6B2C', 'SSN':'#B5622A'
+  'CNV':'#0E3852', 'UIF':'#6B4C86', 'AFIP':'#2E7D62', 'DPJ':'#8A6B2C', 'SSN':'#B5622A'
 };
 function authColor(auth){
   const key=(auth||'').toUpperCase().trim();
