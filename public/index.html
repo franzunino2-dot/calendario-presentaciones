@@ -418,6 +418,9 @@
       <input type="date" id="addPuntualDate">
     </div>
 
+    <label class="field-label">Link al paso a paso (opcional)</label>
+    <input type="text" id="addHowto" placeholder="https://...">
+
     <div class="modal-actions">
       <button class="modal-btn cancel" id="cancelAddBtn">Cancelar</button>
       <button class="modal-btn save" id="saveAddBtn">Guardar</button>
@@ -657,25 +660,25 @@ function sameDay(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()=
 const ARCA_URL = 'https://www.argentina.gob.ar/arca/vencimientos';
 const ITEMS = [
   // MENSUAL - fechas calculables
-  {id:'m-reclamos', auth:'CNV', name:'Informe de reclamos y/o denuncias de clientes', freq:'mensual', rule:{type:'cal', days:2}, meta:'2 días corridos de finalizado el mes'},
-  {id:'m-acdi', auth:'CNV', name:'ACDI — Cuotapartistas que suscribieron FCI', freq:'mensual', rule:{type:'cal', days:3}, meta:'3 días corridos de finalizado el mes'},
+  {id:'m-reclamos', auth:'CNV', name:'Informe de reclamos y/o denuncias de clientes', freq:'mensual', rule:{type:'cal', days:2}, meta:'2 días corridos de finalizado el mes', howto:'https://claude.ai/artifact/VzNwGyEHWapAGiT6wUTHus#informe-de-reclamos-y-o-denuncias-de-clientes'},
+  {id:'m-acdi', auth:'CNV', name:'ACDI — Cuotapartistas que suscribieron FCI', freq:'mensual', rule:{type:'cal', days:3}, meta:'3 días corridos de finalizado el mes', howto:'https://claude.ai/artifact/VzNwGyEHWapAGiT6wUTHus#acdi-informacion-de-cuotapartistas-que-suscribieron-a-fci'},
   {id:'m-rg1130-liq', auth:'CNV', name:'RG 1130/2026 — Indicadores de liquidez y apalancamiento', freq:'mensual', rule:{type:'biz', days:8}, meta:'8 días hábiles de finalizado el mes', nuevo:'RG 1130/2026'},
-  {id:'m-rg1130-me', auth:'CNV', name:'RG 1130/2026 — Tenencias diarias de moneda extranjera (cartera propia)', freq:'mensual', rule:{type:'biz', days:10}, meta:'10 días hábiles de finalizado el mes', nuevo:'RG 1130/2026'},
-  {id:'m-rg1122-pasivos', auth:'CNV', name:'RG 1122/2026 — Pasivos financieros del Agente', freq:'mensual', rule:{type:'biz', days:3}, meta:'3 días hábiles de finalizado el mes — Portal AIF, formulario AGE_030', nuevo:'RG 1122/2026'},
+  {id:'m-rg1130-me', auth:'CNV', name:'RG 1144/2026 — Tenencias diarias de moneda extranjera (cartera propia)', freq:'mensual', rule:{type:'biz', days:10}, meta:'10 días hábiles de finalizado el mes', nuevo:'RG 1144/2026', howto:'https://claude.ai/artifact/VzNwGyEHWapAGiT6wUTHus#moneda-extranjera'},
+  {id:'m-rg1122-pasivos', auth:'CNV', name:'RG 1122/2026 — Pasivos financieros del Agente', freq:'mensual', rule:{type:'biz', days:3}, meta:'3 días hábiles de finalizado el mes — Portal AIF, formulario AGE_030', nuevo:'RG 1122/2026', howto:'https://claude.ai/artifact/VzNwGyEHWapAGiT6wUTHus#pasivos-financieros'},
   {id:'m-rg1122-prestamos', auth:'CNV', name:'RG 1122/2026 — Acuerdos de préstamo o alquiler de valores negociables', freq:'mensual', rule:{type:'biz', days:3}, meta:'3 días hábiles de finalizado el mes — Portal AIF, formulario AGE_030', nuevo:'RG 1122/2026'},
   {id:'m-cd-ordenes', auth:'CNV', name:'Copiado a CD — Registro de Órdenes de Mercado', freq:'mensual', rule:{type:'biz', days:10}, meta:'10 días hábiles de finalizado el mes'},
   {id:'m-cd-caja', auth:'CNV', name:'Copiado a CD — Libro Caja', freq:'mensual', rule:{type:'biz', days:10}, meta:'10 días hábiles de finalizado el mes'},
   {id:'m-cd-diario', auth:'CNV', name:'Copiado a CD — Libro Diario', freq:'mensual', rule:{type:'biz', days:10}, meta:'10 días hábiles de finalizado el mes'},
   {id:'m-cd-clientes', auth:'CNV', name:'Copiado a CD — Libro de Operaciones de Clientes', freq:'mensual', rule:{type:'biz', days:10}, meta:'10 días hábiles de finalizado el mes'},
   {id:'m-cd-exterior', auth:'CNV', name:'Copiado de libro del exterior', freq:'mensual', rule:{type:'biz', days:10}, meta:'10 días hábiles de finalizado el mes'},
-  {id:'m-rsm', auth:'UIF', name:'Detalle de cuentas comitentes activas e inactivas (RSM)', freq:'mensual', rule:{type:'dom', day:15}, meta:'hasta el día 15 de cada mes'},
-  {id:'m-rti', auth:'UIF', name:'Transferencias internacionales de valores negociables (RTI)', freq:'mensual', rule:{type:'dom', day:15}, meta:'hasta el día 15 de cada mes'},
+  {id:'m-rsm', auth:'UIF', name:'Detalle de cuentas comitentes activas e inactivas (RSM)', freq:'mensual', rule:{type:'dom', day:15}, meta:'hasta el día 15 de cada mes', howto:'https://claude.ai/artifact/VzNwGyEHWapAGiT6wUTHus#rsm-y-rti'},
+  {id:'m-rti', auth:'UIF', name:'Transferencias internacionales de valores negociables (RTI)', freq:'mensual', rule:{type:'dom', day:15}, meta:'hasta el día 15 de cada mes', howto:'https://claude.ai/artifact/VzNwGyEHWapAGiT6wUTHus#rsm-y-rti'},
   {id:'m-sire', auth:'AFIP', name:'RG 3364/12 — Terceros intervinientes y beneficiarios del exterior (SIRE)', freq:'mensual', rule:{type:'lastbiz-nextmonth'}, meta:'último día hábil del mes siguiente'},
   {id:'m-siter', auth:'AFIP', name:'SITER — Transacciones Económicas Relevantes', freq:'mensual', rule:{type:'lastbiz-nextmonth'}, meta:'último día hábil del mes siguiente'},
 
   // TRIMESTRAL
-  {id:'t-valorizacion', auth:'CNV', name:'Valorización de carteras administradas', freq:'trimestral', rule:{type:'cal', days:10}, meta:'10 días corridos de finalizado el trimestre'},
-  {id:'t-clientes-pais', auth:'CNV', name:'Cantidad de clientes PF/PJ por país de residencia', freq:'trimestral', rule:{type:'cal', days:10}, meta:'10 días corridos de finalizado el trimestre'},
+  {id:'t-valorizacion', auth:'CNV', name:'Valorización de carteras administradas', freq:'trimestral', rule:{type:'cal', days:10}, meta:'10 días corridos de finalizado el trimestre', howto:'https://claude.ai/artifact/VzNwGyEHWapAGiT6wUTHus#informe-de-valorizacion-de-carteras-administradas'},
+  {id:'t-clientes-pais', auth:'CNV', name:'Cantidad de clientes PF/PJ por país de residencia', freq:'trimestral', rule:{type:'cal', days:10}, meta:'10 días corridos de finalizado el trimestre', howto:'https://claude.ai/artifact/VzNwGyEHWapAGiT6wUTHus#informe-de-cantidad-de-clientes-pf-y-pj-con-detalle-de-pais-de-residencia'},
 
   // SEMESTRAL
   {id:'s-eecc', auth:'CNV', name:'EECC Semestrales', freq:'semestral', rule:{type:'cal', days:42}, meta:'42 días corridos de finalizado el semestre'},
@@ -706,15 +709,15 @@ const ITEMS = [
 // items sin fecha fija (calendario AFIP / eventos variables) — se listan siempre, sin pin en la grilla
 const VARIABLE_ITEMS = [
   {id:'v-iva', auth:'AFIP', name:'DDJJ IVA', meta:'CUIT terminado en 3 → grupo "2-3" (día base 19, se corre por fines de semana/feriados)', freq:'Mensual', link:ARCA_URL},
-  {id:'v-iibb', auth:'AFIP', name:'DDJJ Ingresos Brutos', meta:'según cronograma provincial (ARBA/AGIP/otras) — no sigue la tabla nacional', freq:'Mensual'},
-  {id:'v-sicore', auth:'AFIP', name:'DDJJ SICORE', meta:'CUIT terminado en 3 → mismo grupo que IVA ("2-3")', freq:'Mensual', link:ARCA_URL},
-  {id:'v-anticipos-gcias', auth:'AFIP', name:'Anticipos de Impuesto a las Ganancias', meta:'personas jurídicas: grupo "0-1-2-3" (vence entre los primeros del mes)', freq:'Mensual', link:ARCA_URL},
+  {id:'v-iibb', auth:'AFIP', name:'DDJJ Ingresos Brutos', meta:'según cronograma provincial (ARBA/AGIP/otras) — no sigue la tabla nacional', freq:'Mensual', howto:'https://claude.ai/artifact/VzNwGyEHWapAGiT6wUTHus#iibb'},
+  {id:'v-sicore', auth:'AFIP', name:'DDJJ SICORE', meta:'CUIT terminado en 3 → mismo grupo que IVA ("2-3")', freq:'Mensual', link:ARCA_URL, howto:'https://claude.ai/artifact/VzNwGyEHWapAGiT6wUTHus#sicore'},
+  {id:'v-anticipos-gcias', auth:'AFIP', name:'Anticipos de Impuesto a las Ganancias', meta:'personas jurídicas: grupo "0-1-2-3" (vence entre los primeros del mes)', freq:'Mensual', link:ARCA_URL, howto:'https://claude.ai/artifact/VzNwGyEHWapAGiT6wUTHus#anticipo-de-impuesto-a-las-ganancias'},
   {id:'v-cargas-sociales', auth:'AFIP', name:'Cargas Sociales (SIJP / F.931)', meta:'CUIT terminado en 3 → grupo "0-1-2-3" (vence primero dentro del mes)', freq:'Mensual', link:ARCA_URL},
   {id:'v-ret-suss-sire', auth:'AFIP', name:'Retenciones SUSS / Beneficiarios del Exterior (SIRE)', meta:'CUIT terminado en 3 → grupo "0-1-2-3"', freq:'Mensual', link:ARCA_URL},
   {id:'v-conv-multilateral', auth:'AFIP', name:'Convenio Multilateral', meta:'según cronograma provincial (Comisión Arbitral) — no sigue la tabla nacional', freq:'Mensual'},
   {id:'v-citi', auth:'AFIP', name:'Compras y Ventas RG3685 (CITI)', meta:'CUIT terminado en 3 → grupo "2-3" (similar a IVA)', freq:'Mensual', link:ARCA_URL},
   {id:'v-ret-iibb-iva-gcias', auth:'AFIP', name:'Retenciones de IIBB / IVA / Ganancias', meta:'CUIT terminado en 3 → grupo "2-3" (1ª quincena)', freq:'Quincenal', link:ARCA_URL},
-  {id:'v-sicore-anticipos', auth:'AFIP', name:'SICORE Anticipos', meta:'CUIT terminado en 3 → grupo "2-3" (2ª quincena)', freq:'Quincenal', link:ARCA_URL},
+  {id:'v-sicore-anticipos', auth:'AFIP', name:'SICORE Anticipos', meta:'CUIT terminado en 3 → grupo "2-3" (2ª quincena)', freq:'Quincenal', link:ARCA_URL, howto:'https://claude.ai/artifact/VzNwGyEHWapAGiT6wUTHus#sicore'},
   {id:'v-eecc-asamblea', auth:'AFIP', name:'Estados Contables con Acta de Asamblea que lo aprueba', meta:'90 días desde la aprobación en asamblea (fecha variable, no repetitiva mes a mes)', freq:'Anual'},
   {id:'v-tasa-dpj', auth:'DPJ', name:'Tasa Anual de Fiscalización', meta:'verificar aplicabilidad', freq:'Anual'},
   {id:'v-f460j', auth:'AFIP', name:'F460/J — Actualización de datos', meta:'al designarse nuevos cargos (cada 3 años)', freq:'Trienal'},
@@ -1080,6 +1083,12 @@ async function render(){
     body.appendChild(nameEl);
     const metaEl=document.createElement('div'); metaEl.className='item-meta'; metaEl.textContent=o.item.meta+' — '+o.label;
     body.appendChild(metaEl);
+    if(o.item.howto){
+      const howtoEl=document.createElement('a'); howtoEl.href=o.item.howto; howtoEl.target='_blank'; howtoEl.rel='noopener';
+      howtoEl.textContent='Ver paso a paso →';
+      howtoEl.style.cssText='font-family:var(--mono);font-size:10px;color:var(--ink-soft);display:inline-block;margin-top:4px;';
+      body.appendChild(howtoEl);
+    }
     row.appendChild(body);
 
     const dateEl = document.createElement('div'); dateEl.className='item-date'; dateEl.textContent=fmtDate(o.due);
@@ -1186,6 +1195,12 @@ async function render(){
       linkEl.style.cssText='font-family:var(--mono);font-size:10px;color:var(--ink-soft);display:inline-block;margin-top:4px;';
       body.appendChild(linkEl);
     }
+    if(v.howto){
+      const howtoEl=document.createElement('a'); howtoEl.href=v.howto; howtoEl.target='_blank'; howtoEl.rel='noopener';
+      howtoEl.textContent='Ver paso a paso →';
+      howtoEl.style.cssText='font-family:var(--mono);font-size:10px;color:var(--ink-soft);display:inline-block;margin-top:4px;margin-left:10px;';
+      body.appendChild(howtoEl);
+    }
     row.appendChild(body);
     if(checked){ const stamp=document.createElement('div'); stamp.className='stamp'; stamp.textContent='cumplido'; row.appendChild(stamp); }
     varList.appendChild(row);
@@ -1262,6 +1277,7 @@ function openModal(){
   document.getElementById('addDaysType').value='cal';
   document.getElementById('addAnualDate').value='';
   document.getElementById('addPuntualDate').value='';
+  document.getElementById('addHowto').value='';
   updateModalFields();
   overlay.classList.remove('hidden');
 }
@@ -1277,7 +1293,9 @@ document.getElementById('saveAddBtn').addEventListener('click', async ()=>{
   if(!name){ document.getElementById('addName').focus(); return; }
   const freq = freqSelect.value;
   const id = 'custom-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);
+  const howto = document.getElementById('addHowto').value.trim();
   let item = {id, auth, name, freq, custom:true};
+  if(howto) item.howto = howto;
 
   if(freq==='mensual'||freq==='trimestral'||freq==='semestral'){
     const mode = recurringModeSelect.value;
